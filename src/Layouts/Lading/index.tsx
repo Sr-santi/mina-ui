@@ -11,15 +11,8 @@ export default function LadingLayout({ children }: Props) {
     <React.Fragment>
       <LandingMain>{children}</LandingMain>
       <LandingFooter>
-        <a
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by SpeeDao{' '}
-          <LandingFooterLogo>
-          ⚡️💡⚡️
-          </LandingFooterLogo>
+        <a href="#" target="_blank" rel="noopener noreferrer">
+          Powered by Harpo <LandingFooterLogo>⚡️💡⚡️</LandingFooterLogo>
         </a>
       </LandingFooter>
     </React.Fragment>
