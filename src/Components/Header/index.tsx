@@ -1,6 +1,7 @@
 import ActionButton from '@Components/ActionButton';
 import React, { ReactNode } from 'react';
 import { HeaderContainer, HeaderLogo, HeaderLogoContainer, HeaderWrapper } from './styles';
+import { SudokuZkApp } from 'sudoku'; //Linking the smart contract to consume it in the UI 
 
 interface Props {
   children?: ReactNode;
