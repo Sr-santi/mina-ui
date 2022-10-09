@@ -6,6 +6,7 @@ import AmountOptions from './AmountOptions';
 import { Dialog } from '@headlessui/react';
 import { CardButton, CardButtonsContainer, CardContainer, CardFieldsContainer } from './styles';
 import MyModal from '@Components/MyModal';
+import { connectSM } from '@utils/minaSmartContract';
 
 interface Props {
   children?: ReactNode;
@@ -48,7 +49,7 @@ export default function TransactionCard({ children }: Props) {
           <CardFieldsContainer>
             <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions>
             <AccountInput text="Recipient address" setAccount={setAccountRecipient} />
-            <ActionButton action={() => setShowModal(true)} size="small" text="Transfer"></ActionButton>
+            <ActionButton action={() => connectSM(setNoteValue)} size="small" text="Transfer"></ActionButton>
           </CardFieldsContainer>
         )}
         {btn2Class && (
