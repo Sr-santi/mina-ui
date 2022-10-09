@@ -53,7 +53,7 @@ export default function TransactionCard({ children }: Props) {
         )}
         {btn2Class && (
           <CardFieldsContainer>
-            <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions>
+            {/* <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions> */}
             <AccountInput text="Transfer note" setAccount={setNote} />
             <AccountInput text="Recipient address" setAccount={setAccountRecipient} />
             <ActionButton action={() => console.log('hola')} size="small" text="Withdraw"></ActionButton>
