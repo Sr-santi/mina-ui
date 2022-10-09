@@ -18,7 +18,7 @@ export default function Header({ children }: Props) {
           <HeaderLogoContainer>
             {/* put a degrade */}
             <HeaderLogo>
-              <img src="/logo.svg" alt="logo" />
+              <img src="/harpo_logo.svg" alt="logo" />
             </HeaderLogo>
           </HeaderLogoContainer>
         </HeaderWrapper>
