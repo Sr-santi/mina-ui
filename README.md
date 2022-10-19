@@ -96,6 +96,10 @@ Smart Contract: https://github.com/Sr-santi/mina-eth-bogota-contract
 
 # Improvements 🔧
 
+-Auro wallet integration for signing transactions
+
+-Front-end integration 
+
 -Validate merkle tree before inserting the commitment into it (Set merkle tree before adding a new leaf)
 
 -Another withdraw proof needs to be approved to send the funds out.
