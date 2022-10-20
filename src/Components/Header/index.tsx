@@ -2,6 +2,7 @@
 import ActionButton from '@Components/ActionButton';
 import React, { ReactNode, useState, useEffect } from 'react';
 import { HeaderContainer, HeaderLogo, HeaderLogoContainer, HeaderWrapper } from './styles';
+import {MixerZkApp} from 'mina-smart-contract'
 
 interface Props {
   children?: ReactNode;
