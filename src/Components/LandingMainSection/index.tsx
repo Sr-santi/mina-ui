@@ -10,9 +10,10 @@ let grey = '#cccccc';
 let darkGrey = '#999999';
 let lightGrey = '#f6f6f6';
 let thin = `${grey} solid 1px`;
-let Mixer:any;
+let Mixer:any;''
 export default function LandingMainSection({ children }: Props) {
   let [zkapp, setZkapp] = useState();
+  let [isLoading, setLoading] = useState(false);
   function DeployContract(setZkapp:any ) {
     
   async function deploy() {
