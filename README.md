@@ -2,7 +2,7 @@
 
 # What did we build? 👷🏻‍♀️🚀
 
-We build a Mixer Protocol in Mina, the high-level idea is to allow private transactions for Mina, which we believe is necessary for building a fully private and secure ecosystem.
+We are building a Mixer Protocol in Mina, the high-level idea is to allow private transactions for Mina, which we believe is necessary for building a fully private and secure ecosystem.
 
 # Why a Mixer? 🤔
 
