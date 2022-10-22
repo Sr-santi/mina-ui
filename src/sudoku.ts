@@ -21,8 +21,19 @@ export { deploy };
 
 await isReady;
 
+export const BOARD_WIDTH = 4;
+// class Board extends CircuitValue {
+//   @matrixProp(Field, BOARD_WIDTH, BOARD_WIDTH) value: Field[][];
 
+//   constructor(value: number[][]) {
+//     super();
+//     this.value = value.map((row) => row.map(Field));
+//   }
 
+//   hash() {
+//     return Poseidon.hash(this.value.flat());
+//   }
+// }
 class MixerZkapp extends SmartContract {
   //state variables 
   @state(Field) commitment1 = State<Field>();
@@ -35,6 +46,10 @@ class MixerZkapp extends SmartContract {
   @state(Field) guessY = State<Field>();
 
   @state(Field) turn = State<Field>();
+
+  @method update(y: Field) {
+    console.log('Just for compiling');
+  }
 
 }
 
@@ -57,6 +72,7 @@ async function deploy() {
   let zkappAddress = zkappKey.toPublicKey();
   tic('compile');
   let { verificationKey } = await MixerZkapp.compile();
+  console.log("VERIFICATION", verificationKey)
   toc();
 //TODO ADD MERKLE TREE STATE VARIABLE 
   // let zkappInterface = {
@@ -68,7 +84,7 @@ async function deploy() {
   let zkapp = new MixerZkapp(zkappAddress);
   let tx = await Mina.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer);
-    zkapp.deploy({ zkappKey, verificationKey });
+    zkapp.deploy({ zkappKey,verificationKey });
   });
   await tx.send().wait();
 
