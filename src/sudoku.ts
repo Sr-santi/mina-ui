@@ -253,8 +253,8 @@ async function createNullifier(publicKey: PublicKey) {
  */
 async function verifyTransaction () {
 
-let withdrawTx = await Mina.transaction(minadoFeePayer, () => {
-  let update = AccountUpdate.createSigned(minadoFeePayer);
+let withdrawTx = await Mina.transaction(zkappKey, () => {
+  let update = AccountUpdate.createSigned(zkappKey);
   let amountToTransfer = 5;
   let merkleTreeWitness = merkleTree.getWitness(1n);
   let merkleWitness = new MerkleWitness(merkleTreeWitness);
