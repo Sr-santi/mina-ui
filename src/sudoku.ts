@@ -61,6 +61,9 @@ Mina.setActiveInstance(Local);
 let minadoFeePayer = Local.testAccounts[0].privateKey;
 let minadoFeePayerAccount = minadoFeePayer.toPublicKey();
 
+// ZK APP ACCOUNT 
+  let zkappKey = PrivateKey.random();
+  let zkappAddress = zkappKey.toPublicKey();
 //This initial balance will fund our harpoFeePayer
 let initialBalance = 10_000_000_000;
 
@@ -73,9 +76,6 @@ let isDeploying = null as null | Interface;
 
 async function deploy() {
   if (isDeploying) return isDeploying;
-// ZK APP ACCOUNT 
-  let zkappKey = PrivateKey.random();
-  let zkappAddress = zkappKey.toPublicKey();
   tic('compile');
   let { verificationKey } = await MixerZkapp.compile();
   console.log("VERIFICATION", verificationKey)
@@ -173,6 +173,21 @@ async function createNullifier(publicKey: PublicKey) {
   return commitment;
 }
 
+/**
+ * After the commitment is added into the merkle Tree and the note is returned, the money should be send to the zkApp account
+ * @param sender
+ * @param amount
+ */
+ async function sendFundstoMixer(sender: PrivateKey, amount: any) {
+  let tx = await Mina.transaction(minadoFeePayer, () => {
+    // AccountUpdate.fundNewAccount(harpoFeePayer);
+    let update = AccountUpdate.createSigned(sender);
+    //The userAddress is funced
+    update.send({ to: zkappAddress, amount: amount });
+    console.log('Sendind Funds to  Harpo Wallet');
+  });
+  await tx.send();
+}
 
 //TODO ADD STATE VARIABLES 
 // function getState(zkappAddress: PublicKey) {
