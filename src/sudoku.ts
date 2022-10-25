@@ -13,6 +13,7 @@ import {
   Poseidon,
   AccountUpdate,
   Bool,
+  Experimental,
   Circuit
 } from 'snarkyjs';
 import { tic, toc } from './tictoc';
@@ -21,7 +22,16 @@ export { deploy };
 
 await isReady;
 
-export const BOARD_WIDTH = 4;
+type Witness = { isLeft: boolean; sibling: Field }[];
+
+const MerkleTreeHeight = 4;
+
+/** Merkle Tree
+ * Instance for global reference. It must be stored off-chain.
+ */
+ const MerkleTree = Experimental.MerkleTree;
+ const merkleTree = new MerkleTree(MerkleTreeHeight);
+ class MerkleWitness extends Experimental.MerkleWitness(MerkleTreeHeight) {}
 // class Board extends CircuitValue {
 //   @matrixProp(Field, BOARD_WIDTH, BOARD_WIDTH) value: Field[][];
 
@@ -36,19 +46,52 @@ export const BOARD_WIDTH = 4;
 // }
 class MixerZkapp extends SmartContract {
   //state variables 
-  @state(Field) commitment1 = State<Field>();
-  @state(Field) commitment2 = State<Field>();
-
-  @state(Field) hits1 = State<Field>();
-  @state(Field) hits2 = State<Field>();
-
-  @state(Field) guessX = State<Field>();
-  @state(Field) guessY = State<Field>();
-
-  @state(Field) turn = State<Field>();
+  @state(Field) x = State<Field>();
+  @state(Field) merkleTreeRoot = State<Field>();
+  @state(Field) lastIndexAdded = State<Field>();
 
   @method update(y: Field) {
     console.log('Just for compiling');
+  }
+  /**
+   *  Insert commitment function
+   * @param commitment Coming from commitment to the Merkle Tree
+   */
+  insertCommitment(commitment: Field) {
+    // we fetch the on-chain commitment
+    let lastIndexAdded = this.lastIndexAdded.get();
+    this.lastIndexAdded.assertEquals(lastIndexAdded);
+
+    let merkleTreeRoot = this.merkleTreeRoot.get();
+    this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+    console.log(
+      'Merkle tree root (pre insertion)',
+      this.merkleTreeRoot.get().toString()
+    );
+    // console.log('Internal --------------------');
+    // console.log('this.root --> ', this.merkleTreeRoot.get());
+    // let indexForNextCommitment = this.lastIndexAdded.get().toBigInt() + 1n;
+    console.log('COMMITMENT' + commitment);
+    merkleTree.setLeaf(1n, commitment);
+
+    let newMerkleTreeRoot = merkleTree.getRoot();
+    this.merkleTreeRoot.set(newMerkleTreeRoot);
+    console.log(
+     'Merkle tree root (post insertion)',
+      this.merkleTreeRoot.get().toString()
+    );
+    // console.log('this.root --> ', this.merkleTreeRoot.get());
+  }
+  /**
+   * Verification Method for Merkle Tree
+   */
+   @method verifyProof(commitment: Field, merkleProof: MerkleWitness) {
+    let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
+
+    let merkleTreeRoot = merkleTree.getRoot();
+    // this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+
+    witnessMerkleRoot.assertEquals(merkleTreeRoot);
   }
 
 }
@@ -189,7 +232,20 @@ async function createNullifier(publicKey: PublicKey) {
   await tx.send();
 }
 
-//TODO ADD STATE VARIABLES 
+//TODO ADD STATE VARIABLES  + Merkle Tree verification
+
+/**
+ * 
+ * Withdraw and Merkle Tree implementation 
+ 1. Create Merkle Tree instance. ( Done in Line 87 )
+ 2. Set leaf with the Commitment ( Done in the insertCommitment function )
+  Note / ToDO : What happens if the Merkle tree is full 
+ 3. Get root of the tree " Initial commitment" Which would be used to verify the transaction // Add to a state variable 
+ Withdraw Logic 
+ 4. Generate merkle tree Witness based on the commitment idndex ( Which comes from the commitment provided)
+ 5. Verify with the witness that the commitment is part of the merkle tree path. 
+
+ */
 // function getState(zkappAddress: PublicKey) {
 //   let zkapp = new MixerZkapp(zkappAddress);
 //   let commitment1 = fieldToHex(zkapp.commitment1.get());
