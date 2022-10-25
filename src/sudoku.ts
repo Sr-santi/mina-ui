@@ -100,14 +100,15 @@ class MixerZkapp extends SmartContract {
 const Local = Mina.LocalBlockchain();
 Mina.setActiveInstance(Local);
 // a test account that pays all the fees, and puts additional funds into the zkapp
-//For our Mixer case the HarpoFeePayer will be the HarpoAccount
+//For our Mixer case the minadoFeePayer will be the HarpoAccount
 let minadoFeePayer = Local.testAccounts[0].privateKey;
 let minadoFeePayerAccount = minadoFeePayer.toPublicKey();
 
 // ZK APP ACCOUNT 
   let zkappKey = PrivateKey.random();
   let zkappAddress = zkappKey.toPublicKey();
-//This initial balance will fund our harpoFeePayer
+  let zkapp = new MixerZkapp(zkappAddress);
+//This initial balance will fund our minadoFeePayer
 let initialBalance = 10_000_000_000;
 
 //TODO: ADD STATE INTERFACE
@@ -129,8 +130,6 @@ async function deploy() {
   //     return getState(zkappAddress);
   //   },
   // };
-
-  let zkapp = new MixerZkapp(zkappAddress);
   let tx = await Mina.transaction(minadoFeePayer, () => {
     AccountUpdate.fundNewAccount(minadoFeePayer,{initialBalance});
     zkapp.deploy({ zkappKey,verificationKey });
@@ -215,7 +214,13 @@ async function createNullifier(publicKey: PublicKey) {
   let commitment = Poseidon.hash([nullifier, secret]);
   return commitment;
 }
-
+/**
+ * Merkle Tree insert commitment function
+ * 
+ */
+ async function insertCommitment(commitment: Field) {
+  await zkapp.insertCommitment(commitment);
+}
 /**
  * After the commitment is added into the merkle Tree and the note is returned, the money should be send to the zkApp account
  * @param sender
@@ -223,7 +228,7 @@ async function createNullifier(publicKey: PublicKey) {
  */
  async function sendFundstoMixer(sender: PrivateKey, amount: any) {
   let tx = await Mina.transaction(minadoFeePayer, () => {
-    // AccountUpdate.fundNewAccount(harpoFeePayer);
+    // AccountUpdate.fundNewAccount(minadoFeePayer);
     let update = AccountUpdate.createSigned(sender);
     //The userAddress is funced
     update.send({ to: zkappAddress, amount: amount });
@@ -246,6 +251,25 @@ async function createNullifier(publicKey: PublicKey) {
  5. Verify with the witness that the commitment is part of the merkle tree path. 
 
  */
+async function verifyTransaction () {
+
+let withdrawTx = await Mina.transaction(minadoFeePayer, () => {
+  let update = AccountUpdate.createSigned(minadoFeePayer);
+  let amountToTransfer = 5;
+  let merkleTreeWitness = merkleTree.getWitness(1n);
+  let merkleWitness = new MerkleWitness(merkleTreeWitness);
+
+  try {
+    zkapp.verifyProof(commitment, merkleWitness);
+  } catch (e) {
+    console.log('Proof not valid');
+    console.log(e);
+  }
+
+  update.send({ to: userAccountAddress, amount: amountToTransfer });
+});
+await withdrawTx.send();
+}
 // function getState(zkappAddress: PublicKey) {
 //   let zkapp = new MixerZkapp(zkappAddress);
 //   let commitment1 = fieldToHex(zkapp.commitment1.get());
