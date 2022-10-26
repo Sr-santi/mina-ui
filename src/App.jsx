@@ -26,13 +26,13 @@ function App() {
   let [zkappState, pullZkappState] = useZkappState(zkapp);
 
   return (
-    <Container>
+    <LandingLayout>
       {zkappState ? (
         <h1>todo bien</h1>
         ) : (
         <DeployContract {...{ setZkapp }} />
       )}
-    </Container>
+    </LandingLayout>
   );
 }
 
@@ -118,24 +118,24 @@ function Button({ disabled = false, ...props }) {
   );
 }
 
-function Container(props) {
-  return (
-    <div
-      style={{
-        maxWidth: '900px',
-        margin: 'auto',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        justifyContent: 'center',
-        padding: '2rem',
-        background: "linear-gradient(#02E365, #56FA0A)"
-      }}
-      {...props}
-    />
-  );
-}
+// function Container(props) {
+//   return (
+//     <div
+//       style={{
+//         maxWidth: '900px',
+//         margin: 'auto',
+//         height: '100vh',
+//         display: 'flex',
+//         flexDirection: 'column',
+//         alignItems: 'stretch',
+//         justifyContent: 'center',
+//         padding: '2rem',
+//         background: "linear-gradient(#02E365, #56FA0A)"
+//       }}
+//       {...props}
+//     />
+//   );
+// }
 
 function Layout({ children }) {
   let [header, left, right] = children;

@@ -15,7 +15,8 @@ import { StyleInput } from './TransactionCard/styles';
 //   useEffect(() => {
 //     copyToClipBoard();
 //   }, []);
-export default function MyModal (){
+export default function MyModal (
+){
 
     return (
       <h1>Hola</h1>)

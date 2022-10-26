@@ -5,7 +5,7 @@ import AccountInput from './AccountInput';
 import AmountOptions from './AmountOptions';
 import { Dialog } from '@headlessui/react';
 import { CardButton, CardButtonsContainer, CardContainer, CardFieldsContainer } from './styles';
-import MyModal from '../../Components/MyModal';
+// import MyModal from '../../Components/MyModal';
 
 interface Props {
   children?: ReactNode;
