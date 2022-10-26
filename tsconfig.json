@@ -4,6 +4,7 @@
     "module": "esnext",
     "outDir": "./dist",
     "rootDir": "./src",
+    "jsx": "preserve",
     "useDefineForClassFields": false,
     "declaration": true,
     "strict": true,
@@ -12,7 +13,11 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@*": ["./src/*"]
+    }
   },
   "include": ["./src/**/*.ts"]
 }

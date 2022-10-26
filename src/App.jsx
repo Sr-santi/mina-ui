@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { render } from 'react-dom';
 import { cloneSudoku } from './sudoku-lib.js';
+import styles from './App.css'
+import CardSection from '@Components/CardSection';
+import LandingMainSection from '../src/Components/LandingMainSection';
+import Header from '../src/Components/Header';
+import LandingLayout from '../src/Layouts/Landing';
+//import { MixerZkApp } from 'mina-smart-contract';
+import TransactionCard from '@Components/TransactionCard';
+
 
 // some style params
 let grey = '#cccccc';
@@ -41,14 +49,24 @@ function DeployContract({ setZkapp }) {
   }
 
   return (
-    <Layout>
-      <Header>Step 1: Deploy the contract</Header>
+    // <Layout>
+    //   <Header>Step 1: Deploy the contract</Header>
 
-      <Button onClick={deploy} disabled={isLoading}>
-        Deploy
-      </Button>
-      <div style={{ padding: 12 }}><i>Please wait ~30s for the proof to generate</i></div>
-    </Layout>
+    //   <Button onClick={deploy} disabled={isLoading}>
+    //     Deploy
+    //   </Button>
+    //   <div style={{ padding: 12 }}><i>Please wait ~30s for the proof to generate</i></div>
+    // </Layout>
+    <div className={styles.container}>
+    <LandingLayout>
+      <Header></Header>
+      <LandingMainSection></LandingMainSection>
+      <div className="w-1 h-1 my-5" />
+      <TransactionCard></TransactionCard>
+      {/* <ScrollingText title={'SpeeDao'} /> */}
+      {/* <CardSection /> */}
+    </LandingLayout>
+  </div>
   );
 }
 
@@ -69,13 +87,13 @@ function useZkappState(zkapp) {
 
 // Pure UI components
 
-function Header({ children }) {
-  return (
-    <div style={{ position: 'relative' }}>
-      <h1 style={{ fontSize: '36px', textAlign: 'center' }}>{children}</h1>
-    </div>
-  );
-}
+// function Header({ children }) {
+//   return (
+//     <div style={{ position: 'relative' }}>
+//       <h1 style={{ fontSize: '36px', textAlign: 'center' }}>{children}</h1>
+//     </div>
+//   );
+// }
 
 function Button({ disabled = false, ...props }) {
   return (

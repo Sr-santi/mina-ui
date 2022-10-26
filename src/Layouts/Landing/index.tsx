@@ -6,7 +6,7 @@ interface Props {
   children?: ReactNode;
 }
 
-export default function LadingLayout({ children }: Props) {
+export default function LandingLayout({ children }: Props) {
   return (
     <React.Fragment>
       <LandingMain>{children}</LandingMain>
