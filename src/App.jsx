@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { render } from 'react-dom';
-import { cloneSudoku } from './sudoku-lib.js';
 import styles from './App.css'
 import CardSection from '@Components/CardSection';
 import LandingMainSection from '../src/Components/LandingMainSection';

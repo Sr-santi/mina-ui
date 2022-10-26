@@ -27,7 +27,7 @@ let server = http.createServer(async (req, res) => {
     js: 'application/javascript',
   }[extension];
   let headers = { ...defaultHeaders, 'content-type': contentType };
-
+console.log('Headers', headers)
   res.writeHead(200, headers);
   res.write(content);
   res.end();
