@@ -23,42 +23,58 @@ render(<App />, document.querySelector('#root'));
 function App() {
   let [zkapp, setZkapp] = useState();
   let [zkappState, pullZkappState] = useZkappState(zkapp);
-
   return (
     <LandingLayout>
       {zkappState ? (
         <h1>todo bien</h1>
         ) : (
-        <DeployContract {...{ setZkapp }} />
+        <DeployContract {...{zkapp, setZkapp }} />
       )}
     </LandingLayout>
   );
 }
 
-function DeployContract({ setZkapp }) {
+function DeployContract({ zkapp , setZkapp }) {
   let [isLoading, setLoading] = useState(false);
+  const [isDeployFinish, setIsDeployFinish] = useState(false)
 
   async function deploy() {
     if (isLoading) return;
     setLoading(true);
-    Sudoku = await import('../dist/sudoku.js');
+    Sudoku = await import('../dist/mixer.js');
     let zkapp = await Sudoku.deploy();
     setLoading(false);
     setZkapp(zkapp);
+    setIsDeployFinish(true)
+  }
+  async function depositTestFundsFunction(){
+    //TODO: CHANGE THIS
+    Sudoku = await import('../dist/mixer.js');
+    let zkapp = await Sudoku.depositTestFunds();
+    // zkapp.depositTestFunds();
+    console.log('ZKAPP => ',zkapp)
+  }
+  async function depositFunction (ammount){
+    Sudoku = await import('../dist/mixer.js');
+    let zkapp = await Sudoku.depositTestFunds();
+    zkapp.deposit(ammount)
   }
 
   return (
     // <Layout>
     //   <Header>Step 1: Deploy the contract</Header>
 
-    //   <Button onClick={deploy} disabled={isLoading}>
-    //     Deploy
-    //   </Button>
+      // <Button onClick={deploy} disabled={isLoading}>
+      //   Deploy
+      // </Button>
     //   <div style={{ padding: 12 }}><i>Please wait ~30s for the proof to generate</i></div>
     // </Layout>
     <div className={styles.container}>
     <LandingLayout>
       <Header></Header>
+      <button onClick={deploy} > popo</button>
+      <button disabled={!isDeployFinish} onClick={depositTestFundsFunction} > popo2</button>
+      {/* <h1>jcdnericmnfdikcmn</h1> */}
       <LandingMainSection></LandingMainSection>
       <div className="w-1 h-1 my-5" />
       <TransactionCard></TransactionCard>

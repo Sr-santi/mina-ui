@@ -24,7 +24,7 @@ import { MerkleTree } from 'snarkyjs/dist/node/lib/merkle_tree';
 import DepositClass from './proof_system/models/DepositClass.js';
 import NullifierClass from './proof_system/models/NullifierClass.js';
 import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
-// export { deploy };
+export { deploy ,  depositTestFunds};
 
 await isReady;
 
@@ -149,18 +149,21 @@ type Interface = {
 };
 
 console.log('HERE');
-let tx = await Mina.transaction(minadoFeePayer, () => {
-  AccountUpdate.fundNewAccount(minadoFeePayer, { initialBalance });
-  zkapp.deploy({ zkappKey });
-  zkapp.init();
-  zkapp.sign(zkappKey);
-  console.log('Minado wallet funded succesfully');
-});
-await tx.send().wait();
-console.log(
-  'Initial state of the merkle tree =>>',
-  zkapp.merkleTreeRoot.get().toString()
-);
+async function deploy(){
+  let tx = await Mina.transaction(minadoFeePayer, () => {
+    AccountUpdate.fundNewAccount(minadoFeePayer, { initialBalance });
+    zkapp.deploy({ zkappKey });
+    zkapp.init();
+    zkapp.sign(zkappKey);
+    console.log('IS THIS HAPPENING ???')
+    console.log('Minado wallet funded succesfully');
+  });
+  await tx.send().wait();
+  console.log(
+    'Initial state of the merkle tree =>>',
+    zkapp.merkleTreeRoot.get().toString()
+  );
+}
 
 //TODO ADD INTEGRATION WITH ARURO WALLET
 
@@ -291,6 +294,7 @@ async function depositTestFunds() {
   console.log('Second TX');
   await tx2.send();
   console.log('UserWallet funded succesfully');
+  return getAccountBalance(userAccountAddress).toString()
 }
 
 async function updateMerkleTree(commitment: Field) {
@@ -470,7 +474,7 @@ async function initTest() {
   console.log('NOTE STRING FROM DEPOSIT => ', noteString);
   withdraw(noteString);
 }
-initTest();
+// initTest();
 // async function verifyTransaction(leafIndex,commitment) {
 //   let withdrawTx = await Mina.transaction(zkappKey, () => {
 //     let update = AccountUpdate.createSigned(zkappKey);
