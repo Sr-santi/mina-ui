@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function AmountOptions({ children, option, setOption }: Props) {
-  const options = [1, 10, 100, 1000];
+  const options = [1, 10, 100];
   return (
     <React.Fragment>
       <OptionButtonContainer>
