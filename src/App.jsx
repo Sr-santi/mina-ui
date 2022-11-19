@@ -38,6 +38,7 @@ function DeployContract({ zkapp, setZkapp }) {
   let [isLoading, setLoading] = useState(false);
   const [isDeployFinish, setIsDeployFinish] = useState(false);
   const [isConnectedWallet, setIsConnectedWallet] = useState(false);
+  const [noteString, setNoteString] = useState('');
 
   async function deploy() {
     if (isLoading) return;
@@ -60,7 +61,9 @@ function DeployContract({ zkapp, setZkapp }) {
   async function depositFunction(amount) {
     Sudoku = await import('../dist/mixer.js');
     let zkapp = await Sudoku.depositTestFunds(amount);
-    zkapp.deposit(amount);
+    const note = zkapp.deposit(amount);
+    console.log('note => ', note);
+    setNoteString(note);
   }
 
   return (
@@ -87,8 +90,11 @@ function DeployContract({ zkapp, setZkapp }) {
           mainAction={deploy}
         ></LandingMainSection>
         <div className={styles.divider} />
-        {isDeployFinish && (
-          <TransactionCard depositFunds={depositFunction}></TransactionCard>
+        {isConnectedWallet && (
+          <TransactionCard
+            note={noteString}
+            depositFunds={depositFunction}
+          ></TransactionCard>
         )}
         {/* <ScrollingText title={'SpeeDao'} /> */}
         {/* <CardSection /> */}

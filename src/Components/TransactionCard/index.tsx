@@ -10,16 +10,21 @@ import {
   CardContainer,
   CardFieldsContainer,
 } from './styles';
-// import MyModal from '../../Components/MyModal';
+import MyModal from '../../Components/MyModal';
 
 interface Props {
   children?: ReactNode;
+  note: string;
   depositFunds: (amount: number) => void;
 }
 
 type classState = '' | 'active';
 
-export default function TransactionCard({ children, depositFunds }: Props) {
+export default function TransactionCard({
+  children,
+  note,
+  depositFunds,
+}: Props) {
   // const handleClick = () => {
   //   console.log('Click happened');
   // };
@@ -28,10 +33,10 @@ export default function TransactionCard({ children, depositFunds }: Props) {
   const [btn2Class, setBtn2Class] = useState<classState>('');
   const [amountOption, setAmountOption] = useState<number>(1);
   const [accountRecipient, setAccountRecipient] = useState();
-  const [noteValue, setNoteValue] = useState(
+  /*  const [noteValue, setNoteValue] = useState(
     'AHIASIN89791823$@!@jhajskasjonnasI)QSN'
-  );
-  const [note, setNote] = useState();
+  ); */
+  const [recipientAccount, setRecipientAccount] = useState();
   function updateButtonStyle() {
     if (btn1Class) {
       setBtn1Class('');
@@ -58,10 +63,10 @@ export default function TransactionCard({ children, depositFunds }: Props) {
               option={amountOption}
               setOption={setAmountOption}
             ></AmountOptions>
-            <AccountInput
+            {/* <AccountInput
               text="Recipient address"
               setAccount={setAccountRecipient}
-            />
+            /> */}
             <ActionButton
               action={() => {
                 depositFunds(amountOption);
@@ -75,7 +80,10 @@ export default function TransactionCard({ children, depositFunds }: Props) {
         {btn2Class && (
           <CardFieldsContainer>
             {/* <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions> */}
-            <AccountInput text="Transfer note" setAccount={setNote} />
+            <AccountInput
+              text="Transfer note"
+              setAccount={setRecipientAccount}
+            />
             <AccountInput
               text="Recipient address"
               setAccount={setAccountRecipient}
@@ -88,7 +96,11 @@ export default function TransactionCard({ children, depositFunds }: Props) {
           </CardFieldsContainer>
         )}
       </CardContainer>
-      {/* <MyModal isOpen={showModal} setIsOpen={setShowModal} noteValue={noteValue}></MyModal> */}
+      <MyModal
+        isOpen={showModal}
+        setIsOpen={setShowModal}
+        noteValue={note}
+      ></MyModal>
     </React.Fragment>
   );
 }
