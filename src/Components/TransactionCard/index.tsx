@@ -4,25 +4,33 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import AccountInput from './AccountInput';
 import AmountOptions from './AmountOptions';
 import { Dialog } from '@headlessui/react';
-import { CardButton, CardButtonsContainer, CardContainer, CardFieldsContainer } from './styles';
+import {
+  CardButton,
+  CardButtonsContainer,
+  CardContainer,
+  CardFieldsContainer,
+} from './styles';
 // import MyModal from '../../Components/MyModal';
 
 interface Props {
   children?: ReactNode;
+  depositFunds: (amount: number) => void;
 }
 
 type classState = '' | 'active';
 
-export default function TransactionCard({ children }: Props) {
+export default function TransactionCard({ children, depositFunds }: Props) {
   // const handleClick = () => {
   //   console.log('Click happened');
   // };
   const [showModal, setShowModal] = useState(true);
   const [btn1Class, setBtn1Class] = useState<classState>('active');
   const [btn2Class, setBtn2Class] = useState<classState>('');
-  const [amountOption, setAmountOption] = useState();
+  const [amountOption, setAmountOption] = useState<number>(1);
   const [accountRecipient, setAccountRecipient] = useState();
-  const [noteValue, setNoteValue] = useState('AHIASIN89791823$@!@jhajskasjonnasI)QSN');
+  const [noteValue, setNoteValue] = useState(
+    'AHIASIN89791823$@!@jhajskasjonnasI)QSN'
+  );
   const [note, setNote] = useState();
   function updateButtonStyle() {
     if (btn1Class) {
@@ -46,17 +54,37 @@ export default function TransactionCard({ children }: Props) {
         </CardButtonsContainer>
         {btn1Class && (
           <CardFieldsContainer>
-            <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions>
-            <AccountInput text="Recipient address" setAccount={setAccountRecipient} />
-            <ActionButton action={() => setShowModal(true)} size="small" text="Transfer"></ActionButton>
+            <AmountOptions
+              option={amountOption}
+              setOption={setAmountOption}
+            ></AmountOptions>
+            <AccountInput
+              text="Recipient address"
+              setAccount={setAccountRecipient}
+            />
+            <ActionButton
+              action={() => {
+                depositFunds(amountOption);
+                setShowModal(true);
+              }}
+              size="small"
+              text="Transfer"
+            ></ActionButton>
           </CardFieldsContainer>
         )}
         {btn2Class && (
           <CardFieldsContainer>
             {/* <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions> */}
             <AccountInput text="Transfer note" setAccount={setNote} />
-            <AccountInput text="Recipient address" setAccount={setAccountRecipient} />
-            <ActionButton action={() => console.log('hola')} size="small" text="Withdraw"></ActionButton>
+            <AccountInput
+              text="Recipient address"
+              setAccount={setAccountRecipient}
+            />
+            <ActionButton
+              action={() => console.log('hola')}
+              size="small"
+              text="Withdraw"
+            ></ActionButton>
           </CardFieldsContainer>
         )}
       </CardContainer>

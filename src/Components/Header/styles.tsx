@@ -4,6 +4,7 @@ export const HeaderContainer = styled.header`
   position: fixed;
   display: flex;
   padding-top: 24px;
+  padding: 24px 48px 0px 48px;
   width: 100%;
   background-image: linear-gradient(
     180deg,
@@ -44,5 +45,6 @@ export const HeaderLogo = styled.div`
   justify-content: center;
   width: 400px;
   height: 120px;
-  filter: invert(100%) sepia(0%) saturate(3207%) hue-rotate(0deg) brightness(95%) contrast(80%);
+  filter: invert(100%) sepia(0%) saturate(3207%) hue-rotate(0deg)
+    brightness(95%) contrast(80%);
 `;

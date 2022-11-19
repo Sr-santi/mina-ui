@@ -1,6 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { ReactNode, useState, useEffect } from 'react';
-import { HeaderContainer, HeaderLogo, HeaderLogoContainer, HeaderWrapper } from './styles';
+import {
+  HeaderContainer,
+  HeaderLogo,
+  HeaderLogoContainer,
+  HeaderWrapper,
+} from './styles';
 
 interface Props {
   children?: ReactNode;
@@ -12,7 +17,7 @@ export default function Header({ children }: Props) {
   // };
   return (
     <React.Fragment>
-      <HeaderContainer className="px-12">
+      <HeaderContainer>
         <HeaderWrapper>
           <HeaderLogoContainer>
             {/* put a degrade */}

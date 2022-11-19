@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { render } from 'react-dom';
-import styles from './App.css'
+import styles from './App.css';
 import CardSection from '@Components/CardSection';
+import ActionButton from '@Components/ActionButton';
 import LandingMainSection from '../src/Components/LandingMainSection';
 import Header from '../src/Components/Header';
 import LandingLayout from '../src/Layouts/Landing';
 //import { MixerZkApp } from 'mina-smart-contract';
 import TransactionCard from '@Components/TransactionCard';
-
 
 // some style params
 let grey = '#cccccc';
@@ -24,19 +24,20 @@ function App() {
   let [zkapp, setZkapp] = useState();
   let [zkappState, pullZkappState] = useZkappState(zkapp);
   return (
-    <LandingLayout>
+    <>
       {zkappState ? (
         <h1>todo bien</h1>
-        ) : (
-        <DeployContract {...{zkapp, setZkapp }} />
+      ) : (
+        <DeployContract {...{ zkapp, setZkapp }} />
       )}
-    </LandingLayout>
+    </>
   );
 }
 
-function DeployContract({ zkapp , setZkapp }) {
+function DeployContract({ zkapp, setZkapp }) {
   let [isLoading, setLoading] = useState(false);
-  const [isDeployFinish, setIsDeployFinish] = useState(false)
+  const [isDeployFinish, setIsDeployFinish] = useState(false);
+  const [isConnectedWallet, setIsConnectedWallet] = useState(false);
 
   async function deploy() {
     if (isLoading) return;
@@ -45,46 +46,56 @@ function DeployContract({ zkapp , setZkapp }) {
     let zkapp = await Sudoku.deploy();
     setLoading(false);
     setZkapp(zkapp);
-    setIsDeployFinish(true)
+    setIsDeployFinish(true);
+    console.log('THis execute well!!');
   }
-  async function depositTestFundsFunction(){
+  async function depositTestFundsFunction() {
     //TODO: CHANGE THIS
     Sudoku = await import('../dist/mixer.js');
     let zkapp = await Sudoku.depositTestFunds();
     // zkapp.depositTestFunds();
-    console.log('ZKAPP => ',zkapp)
+    setIsConnectedWallet(true);
+    console.log('ZKAPP => ', zkapp);
   }
-  async function depositFunction (ammount){
+  async function depositFunction(amount) {
     Sudoku = await import('../dist/mixer.js');
-    let zkapp = await Sudoku.depositTestFunds(ammount);
-    zkapp.deposit(ammount)
+    let zkapp = await Sudoku.depositTestFunds(amount);
+    zkapp.deposit(amount);
   }
 
   return (
     // <Layout>
     //   <Header>Step 1: Deploy the contract</Header>
 
-      // <Button onClick={deploy} disabled={isLoading}>
-      //   Deploy
-      // </Button>
+    // <Button onClick={deploy} disabled={isLoading}>
+    //   Deploy
+    // </Button>
     //   <div style={{ padding: 12 }}><i>Please wait ~30s for the proof to generate</i></div>
     // </Layout>
     <div className={styles.container}>
-    <LandingLayout>
-      <Header></Header>
-      <button onClick={deploy} > popo</button>
-      <button disabled={!isDeployFinish} onClick={depositTestFundsFunction} > popo2</button>
-      {/* <h1>jcdnericmnfdikcmn</h1> */}
-      <LandingMainSection></LandingMainSection>
-      <div className="w-1 h-1 my-5" />
-      <TransactionCard></TransactionCard>
-      {/* <ScrollingText title={'SpeeDao'} /> */}
-      {/* <CardSection /> */}
-    </LandingLayout>
-  </div>
+      <LandingLayout>
+        <Header></Header>
+        <ActionButton
+          action={!isConnectedWallet ? depositTestFundsFunction : () => {}}
+          size="medium"
+          text={!isConnectedWallet ? 'Connect Wallet' : 'Connected'}
+          disabled={!isDeployFinish}
+        ></ActionButton>
+        {/* <h1>jcdnericmnfdikcmn</h1> */}
+        <LandingMainSection
+          isDeployFinish={isDeployFinish}
+          mainAction={deploy}
+        ></LandingMainSection>
+        <div className={styles.divider} />
+        {isDeployFinish && (
+          <TransactionCard depositFunds={depositFunction}></TransactionCard>
+        )}
+        {/* <ScrollingText title={'SpeeDao'} /> */}
+        {/* <CardSection /> */}
+      </LandingLayout>
+    </div>
   );
 }
-
 
 function useZkappState(zkapp) {
   // custom hook to get the state in the SmartContract instance

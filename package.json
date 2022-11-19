@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js & esbuild --watch --splitting --bundle ./src/App.jsx --outdir=./public/js --format=esm --target=esnext --define:process.env.NODE_ENV='\"development\"'",
-    "build": "tsc && esbuild --minify --splitting --bundle ./src/App.jsx --outdir=./public/js --format=esm --target=esnext --define:process.env.NODE_ENV='\"production\"'"
+    "build": "tsc && esbuild --minify --splitting --bundle ./src/App.jsx --outdir=./public/js --format=esm --target=esnext --define:process.env.NODE_ENV='\"production\"'",
+    "dev": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "O(1) labs",
