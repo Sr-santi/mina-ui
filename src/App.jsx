@@ -59,10 +59,11 @@ function DeployContract({ zkapp, setZkapp }) {
     console.log('ZKAPP => ', zkapp);
   }
   async function depositFunction(amount) {
-    Sudoku = await import('../dist/mixer.js');
-    let zkapp = await Sudoku.depositTestFunds(amount);
-    const note = zkapp.deposit(amount);
+    let Mixer = await import('../dist/mixer.js');
+    console.log('AMMOUUNTTT => ',amount, "Type of => ", typeof(amount))
+    const note = await Mixer.deposit(amount);
     console.log('note => ', note);
+
     setNoteString(note);
   }
 

@@ -19,12 +19,13 @@ import {
   Permissions,
   UInt64,
   Int64,
+  MerkleTree,
 } from 'snarkyjs';
-import { MerkleTree } from 'snarkyjs/dist/node/lib/merkle_tree';
+// import { tic, toc } from './tictoc';
 import DepositClass from './proof_system/models/DepositClass.js';
 import NullifierClass from './proof_system/models/NullifierClass.js';
 import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
-export { deploy ,  depositTestFunds};
+export { deploy ,depositTestFunds, deposit};
 
 await isReady;
 
@@ -34,9 +35,9 @@ const MerkleTreeHeight = 4;
 /** Merkle Tree
  * Instance for global reference. It must be stored off-chain.
  */
-const MerkleTreeInit = Experimental.MerkleTree;
+const MerkleTreeInit = MerkleTree;
 const merkleTree = new MerkleTreeInit(MerkleTreeHeight);
-class MerkleWitness extends Experimental.MerkleWitness(MerkleTreeHeight) {}
+// class MerkleWitness extends MerkleWitness(MerkleTreeHeight) {}
 //
 let initialIndex: Field = new Field(0n);
 export class MixerZkApp extends SmartContract {
@@ -58,13 +59,14 @@ export class MixerZkApp extends SmartContract {
       editState: Permissions.proofOrSignature(),
       send: Permissions.proofOrSignature(),
     });
-    this.balance.addInPlace(UInt64.fromNumber(initialBalance));
+    //TODO: Check the functionality of this line
+    // this.balance.addInPlace(new UInt64(initialBalance));
     this.lastIndexAdded.set(initialIndex);
   }
-  @method init() {
+  @method initState() {
     console.log('Initiating Merkle Tree .....');
     const merkleTreeRoot = merkleTree.getRoot();
-    // //Setting the state of the Merkle Tree
+    //Setting the state of the Merkle Tree
     this.merkleTreeRoot.set(merkleTreeRoot);
   }
   //
@@ -115,17 +117,18 @@ export class MixerZkApp extends SmartContract {
     };
     this.emitEvent('deposit', deposit);
   }
-  /**
-   * Verification Method for Merkle Tree
-   */
-  @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness) {
-    let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
-    //TODO: SHOULD COMO OFF-CHAIN
-    let merkleTreeRoot = merkleTree.getRoot();
-    this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+  //TODO: ADD NEW IMPLEMENTATION OF MERKLE WITNESS
+  // /**
+  //  * Verification Method for Merkle Tree
+  //  */
+  // @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness) {
+  //   let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
+  //   //TODO: SHOULD COMO OFF-CHAIN
+  //   let merkleTreeRoot = merkleTree.getRoot();
+  //   this.merkleTreeRoot.assertEquals(merkleTreeRoot);
 
-    witnessMerkleRoot.assertEquals(merkleTreeRoot);
-  }
+  //   witnessMerkleRoot.assertEquals(merkleTreeRoot);
+  // }
 }
 
 // setup
@@ -141,29 +144,27 @@ let zkappKey = PrivateKey.random();
 let zkappAddress = zkappKey.toPublicKey();
 let zkapp = new MixerZkApp(zkappAddress);
 //This initial balance will fund our minadoFeePayer
-let initialBalance = 10_000_000_000;
+// let initialBalance = 10_000_001;
 
 //TODO: ADD STATE INTERFACE IF NECESSARY
 type Interface = {
   // getState(): { commitment1: string; commitment2: string, hits1: string, hits2: string, turn: string, guessX: string, guessY: string };
 };
-
-console.log('HERE');
 async function deploy(){
+  console.log('HERE');
   let tx = await Mina.transaction(minadoFeePayer, () => {
-    AccountUpdate.fundNewAccount(minadoFeePayer, { initialBalance });
-    zkapp.deploy({ zkappKey });
-    zkapp.init();
+    AccountUpdate.fundNewAccount(minadoFeePayer);
+    zkapp.deploy({ zkappKey: zkappKey });
+    zkapp.initState();
     zkapp.sign(zkappKey);
-    console.log('IS THIS HAPPENING ???')
     console.log('Minado wallet funded succesfully');
   });
-  await tx.send().wait();
-  console.log(
-    'Initial state of the merkle tree =>>',
-    zkapp.merkleTreeRoot.get().toString()
-  );
+  await tx.send();
 }
+// console.log(
+//   'Initial state of the merkle tree =>>',
+//   zkapp.merkleTreeRoot.get().toString()
+// );
 
 //TODO ADD INTEGRATION WITH ARURO WALLET
 
@@ -202,7 +203,7 @@ async function deposit(amount: Number) {
   /**
    * 2. A userAccount is  funded with the purpose of depositing into our harpoAccount.
    */
-  await depositTestFunds();
+  // await depositTestFunds();
   let initialBalanceUser = getAccountBalance(userAccountAddress).toString();
   //TODO: BUG HERE
   let initialBalanceZkApp = getAccountBalance(zkappAddress).toString();
@@ -293,8 +294,8 @@ async function depositTestFunds() {
   });
   console.log('Second TX');
   await tx2.send();
+  return userAccountKey;
   console.log('UserWallet funded succesfully');
-  return getAccountBalance(userAccountAddress).toString()
 }
 
 async function updateMerkleTree(commitment: Field) {
@@ -341,6 +342,7 @@ function createCommitment(nullifier: Field, secret: Field) {
  */
 async function sendFundstoMixer(sender: PrivateKey, amount: any) {
   let tx = await Mina.transaction(sender, () => {
+    console.log('SENDER')
     let update = AccountUpdate.createSigned(sender);
     //The userAddress is funced
     update.send({ to: zkappAddress, amount: amount });
