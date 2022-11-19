@@ -56,7 +56,7 @@ function DeployContract({ zkapp , setZkapp }) {
   }
   async function depositFunction (ammount){
     Sudoku = await import('../dist/mixer.js');
-    let zkapp = await Sudoku.depositTestFunds();
+    let zkapp = await Sudoku.depositTestFunds(ammount);
     zkapp.deposit(ammount)
   }
 
