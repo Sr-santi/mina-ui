@@ -2,6 +2,14 @@ import { Dialog, Transition } from '@headlessui/react';
 import React from 'react';
 import { Fragment, useEffect, useState } from 'react';
 import { StyleInput } from './TransactionCard/styles';
+import '../styles/output.css';
+import {
+  ButtonContainer,
+  Modal,
+  ModalContainer,
+  NoteText,
+} from './MyModalStyles';
+import ActionButton from './ActionButton';
 
 export default function MyModal({
   isOpen,
@@ -26,7 +34,31 @@ export default function MyModal({
   }, []);
   return (
     <>
-      <Transition appear show={isOpen} as={Fragment}>
+      {isOpen && (
+        <ModalContainer>
+          <Modal>
+            <div className="text-2xl font-bold leading-6 text-[#484848]">
+              <h1>This is your transaction note:</h1>
+            </div>
+            <div className="mt-2">
+              <p className="text-sm text-[#484848]">
+                You can copy this note to share or withdraw your funds from the
+                mixer:
+              </p>
+            </div>
+            <NoteText>{noteValue ? noteValue : 'Loading...'}</NoteText>
+            <ButtonContainer>
+              <ActionButton
+                size="small"
+                text={'Copy and Close'}
+                action={closeModal}
+              />
+            </ButtonContainer>
+          </Modal>
+        </ModalContainer>
+      )}
+
+      {/* <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
             as={Fragment}
@@ -82,11 +114,7 @@ export default function MyModal({
             </div>
           </div>
         </Dialog>
-      </Transition>
+      </Transition> */}
     </>
   );
 }
-
-/* export default function MyModal() {
-  return <h1>Hola</h1>;
-} */

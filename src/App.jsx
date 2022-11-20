@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { render } from 'react-dom';
-import styles from './App.css';
 import CardSection from '@Components/CardSection';
 import ActionButton from '@Components/ActionButton';
 import LandingMainSection from '../src/Components/LandingMainSection';
@@ -8,6 +7,10 @@ import Header from '../src/Components/Header';
 import LandingLayout from '../src/Layouts/Landing';
 //import { MixerZkApp } from 'mina-smart-contract';
 import TransactionCard from '@Components/TransactionCard';
+
+//styles
+import styles from './App.css';
+import './styles/output.css';
 
 // some style params
 let grey = '#cccccc';
@@ -59,8 +62,9 @@ function DeployContract({ zkapp, setZkapp }) {
     console.log('ZKAPP => ', zkapp);
   }
   async function depositFunction(amount) {
+    setNoteString('');
     let Mixer = await import('../dist/mixer.js');
-    console.log('AMMOUUNTTT => ',amount, "Type of => ", typeof(amount))
+    console.log('AMMOUUNTTT => ', amount, 'Type of => ', typeof amount);
     const note = await Mixer.deposit(amount);
     console.log('note => ', note);
 
