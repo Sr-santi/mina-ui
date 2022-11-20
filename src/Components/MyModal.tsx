@@ -1,4 +1,3 @@
-import { Dialog, Transition } from '@headlessui/react';
 import React from 'react';
 import { Fragment, useEffect, useState } from 'react';
 import { StyleInput } from './TransactionCard/styles';
@@ -42,8 +41,7 @@ export default function MyModal({
             </div>
             <div className="mt-2">
               <p className="text-sm text-[#484848]">
-                You can copy this note to share or withdraw your funds from the
-                mixer:
+                You can copy this note to withdraw your funds from the mixer:
               </p>
             </div>
             <NoteText>{noteValue ? noteValue : 'Loading...'}</NoteText>
@@ -51,7 +49,7 @@ export default function MyModal({
               <ActionButton
                 size="small"
                 text={'Copy and Close'}
-                action={closeModal}
+                action={copyToClipBoard}
               />
             </ButtonContainer>
           </Modal>
