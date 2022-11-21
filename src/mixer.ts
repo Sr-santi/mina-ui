@@ -20,18 +20,27 @@ import {
   UInt64,
   Int64,
   MerkleTree,
+  Signature,
 } from 'snarkyjs';
+import {
+  OffChainStorage,
+  MerkleWitness8,
+} from 'experimental-zkapp-offchain-storage';
 // import { tic, toc } from './tictoc';
 import DepositClass from './proof_system/models/DepositClass.js';
 import NullifierClass from './proof_system/models/NullifierClass.js';
 import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
-export { deploy ,depositTestFunds, deposit,getAccountBalance,returnAddresses};
+// import fs from 'fs';
+// import XMLHttpRequestTs, { XMLHttpRequest } from 'xmlhttprequest-ts';
+// const NodeXMLHttpRequest =XMLHttpRequestTs.XMLHttpRequest as any as typeof XMLHttpRequest
+// export { deploy };
 
 await isReady;
+export { deploy ,depositTestFunds, deposit,getAccountBalance,returnAddresses};
 
 type Witness = { isLeft: boolean; sibling: Field }[];
 
-const MerkleTreeHeight = 4;
+const MerkleTreeHeight = 8;
 /** Merkle Tree
  * Instance for global reference. It must be stored off-chain.
  */
@@ -46,28 +55,38 @@ export class MixerZkApp extends SmartContract {
   // @state(Field) merkleTreeVariable = State<MerkleTree>();
   @state(Field) merkleTreeRoot = State<Field>();
   @state(Field) lastIndexAdded = State<Field>();
+  //State variables offchain storage
+  @state(PublicKey) storageServerPublicKey = State<PublicKey>();
+  @state(Field) storageNumber = State<Field>();
+  @state(Field) storageTreeRoot = State<Field>();
 
   events = {
     deposit: DepositClass,
     nullifier: NullifierClass,
   };
 
-  deploy(args: DeployArgs) {
+  async deploy(args: DeployArgs) {
     super.deploy(args);
     this.setPermissions({
       ...Permissions.default(),
       editState: Permissions.proofOrSignature(),
       send: Permissions.proofOrSignature(),
     });
+    // let serverPublicKey = await offChainStorageSetup()
     //TODO: Check the functionality of this line
-    // this.balance.addInPlace(new UInt64(initialBalance));
     this.lastIndexAdded.set(initialIndex);
   }
   @method initState() {
     console.log('Initiating Merkle Tree .....');
     const merkleTreeRoot = merkleTree.getRoot();
+    // this.storageServerPublicKey.set();
     //Setting the state of the Merkle Tree
+    //TODO: DELETE
     this.merkleTreeRoot.set(merkleTreeRoot);
+    const emptyTreeRoot = new MerkleTree(8).getRoot();
+    this.storageTreeRoot.set(emptyTreeRoot);
+    //Used to make sure that we are storing states
+    this.storageNumber.set(Field.zero);
   }
   //
   //TODO:  Verify Merke Tree before inserting a commitment
@@ -75,13 +94,10 @@ export class MixerZkApp extends SmartContract {
     console.log('Updating the Merkle Tree .....');
 
     /**
-     * Getting Merkle Tree root
+     * Getting Merkle Tree State in the contract
      */
     let merkleTreeRoot = this.merkleTreeRoot.get();
     this.merkleTreeRoot.assertEquals(merkleTreeRoot);
-
-    //Getting the last index
-
     let lastIndex = this.lastIndexAdded.get();
     this.lastIndexAdded.assertEquals(lastIndex);
     let lastIndexFormated = lastIndex.toBigInt();
@@ -117,23 +133,78 @@ export class MixerZkApp extends SmartContract {
     };
     this.emitEvent('deposit', deposit);
   }
-  //TODO: ADD NEW IMPLEMENTATION OF MERKLE WITNESS
-  // /**
-  //  * Verification Method for Merkle Tree
-  //  */
-  // @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness) {
-  //   let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
-  //   //TODO: SHOULD COMO OFF-CHAIN
-  //   let merkleTreeRoot = merkleTree.getRoot();
-  //   this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+  @method updateOffchain(
+    leafIsEmpty: Bool,
+    oldLeaf: Field,
+    commitment: Field,
+    path: MerkleWitness8,
+    storedNewRootNumber: Field,
+    storedNewRootSignature: Signature
+  ) {
+    //Get the state of the contract
+    const storedRoot = this.storageTreeRoot.get();
+    this.storageTreeRoot.assertEquals(storedRoot);
+    console.log('INITAL STATE OF THE ROOT OFF-CHAIN', storedRoot.toString());
+    let storedNumber = this.storageNumber.get();
+    this.storageNumber.assertEquals(storedNumber);
 
-  //   witnessMerkleRoot.assertEquals(merkleTreeRoot);
-  // }
+    let storageServerPublicKey = this.storageServerPublicKey.get();
+    this.storageServerPublicKey.assertEquals(storageServerPublicKey);
+    console.log('STORAGE SERVER PB => ', storageServerPublicKey);
+
+    //Check that the new leaf is greated than the old leaf
+    let leaf = [oldLeaf];
+    let newLeaf = [commitment];
+
+    const updates = [
+      {
+        leaf,
+        leafIsEmpty,
+        newLeaf,
+        newLeafIsEmpty: Bool(false),
+        leafWitness: path,
+      },
+    ];
+
+    //Fucntion to verify that the update really came from the existing
+
+    const storedNewRoot = OffChainStorage.assertRootUpdateValid(
+      storageServerPublicKey,
+      storedNumber,
+      storedRoot,
+      updates,
+      storedNewRootNumber,
+      storedNewRootSignature
+    );
+
+    this.storageTreeRoot.set(storedNewRoot);
+    this.storageNumber.set(storedNewRootNumber);
+
+    //TODO: ADD INDEX LOGIC
+  }
+  // TODO: ADD NEW IMPLEMENTATION OF MERKLE WITNESS
+  /**
+   * Verification Method for Merkle Tree
+   */
+  @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness8) {
+    let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
+    console.log('PROOF VERIFICATION ROOT => ',witnessMerkleRoot.toString())
+    //TODO: SHOULD COMO OFF-CHAIN
+    let merkleTreeRoot = merkleTree.getRoot();
+    this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+
+    witnessMerkleRoot.assertEquals(merkleTreeRoot);
+  }
 }
 
 // setup
 const Local = Mina.LocalBlockchain();
 Mina.setActiveInstance(Local);
+const storageServerAddress = 'http://localhost:3001';
+// const serverPublicKey = await OffChainStorage.getPublicKey(
+//   storageServerAddress,
+//   NodeXMLHttpRequest
+// );
 // a test account that pays all the fees, and puts additional funds into the zkapp
 //For our Mixer case the minadoFeePayer will be the HarpoAccount
 let minadoFeePayer = Local.testAccounts[0].privateKey;
@@ -145,19 +216,12 @@ let zkappAddress = zkappKey.toPublicKey();
 let zkapp = new MixerZkApp(zkappAddress);
 //This initial balance will fund our minadoFeePayer
 // let initialBalance = 10_000_001;
-async function returnAddresses (){
-  let object ={
-    user:userAccountAddress,
-    zkapp:zkappAddress,
-    feePayer:minadoFeePayerAccount
-  }
-  return object
-}
+
 //TODO: ADD STATE INTERFACE IF NECESSARY
 type Interface = {
   // getState(): { commitment1: string; commitment2: string, hits1: string, hits2: string, turn: string, guessX: string, guessY: string };
 };
-async function deploy(){
+async function deploy (){
   console.log('HERE');
   let tx = await Mina.transaction(minadoFeePayer, () => {
     AccountUpdate.fundNewAccount(minadoFeePayer);
@@ -168,7 +232,93 @@ async function deploy(){
   });
   await tx.send();
 }
-// console.log(
+//todo: change functions
+// async function offChainStorageSetup() {
+// Connecting to the server
+// }
+// async function updateMerkleTreeOffchain(commitment: Field) {
+//   //Get the root of the Merkle Tree
+//   // get the existing tree
+//   /**
+//    * TODO: CHANGE FOR REAL LAST INDEX WHEN REFACTOR IS COMPLETED
+//    */
+//   //  let index =zkapp.lastIndexAdded.get()
+//   //  zkapp.lastIndexAdded.assertEquals(index);
+//   const index = BigInt(Math.floor(Math.random() * 4));
+//   console.log('UPDATE MERKLE OFF-CHAIN FUNCTION STARTS ');
+//   const treeRoot = await zkapp.storageTreeRoot.get();
+//   const idx2fields = await OffChainStorage.get(
+//     storageServerAddress,
+//     zkappAddress,
+//     MerkleTreeHeight,
+//     treeRoot,
+//     NodeXMLHttpRequest
+//   );
+//   // RECONSTRUCTING THE TREE
+//   const tree = OffChainStorage.mapToTree(MerkleTreeHeight, idx2fields);
+//   //Crearing the merkle witness
+//   //TODO: Tutn leaf index into a BigInt
+//   const leafWitness = new MerkleWitness8(tree.getWitness(index));
+
+//   // get the previopus commitment
+//   const priorCommitmentInLeaf = !idx2fields.has(index);
+//   let priorCommitment: Field;
+//   //TODO:CHECK THIS LOGIC
+//   if (!priorCommitmentInLeaf) {
+//     priorCommitment = idx2fields.get(index)![0];
+//     //Change for new commitment
+//   } else {
+//     priorCommitment = Field.zero;
+//   }
+//   // update the leaf, and save it in the storage server
+//   idx2fields.set(index, [commitment]);
+//   const [storedNewStorageNumber, storedNewStorageSignature] =
+//     await OffChainStorage.requestStore(
+//       storageServerAddress,
+//       zkappAddress,
+//       MerkleTreeHeight,
+//       idx2fields,
+//       NodeXMLHttpRequest
+//     );
+//   console.log('storedNewStorageNumber =>>.', storedNewStorageNumber);
+//   console.log(
+//     'changing index',
+//     index,
+//     'from',
+//     priorCommitment.toString(),
+//     'to',
+//     commitment.toString()
+//   );
+//   console.log('LEAF NUMBER =>>', commitment.toString());
+//   //update the smart contract
+//   let transaction = await Mina.transaction(minadoFeePayer, () => {
+//     zkapp.updateOffchain(
+//       Bool(priorCommitmentInLeaf),
+//       priorCommitment,
+//       commitment,
+//       leafWitness,
+//       storedNewStorageNumber,
+//       storedNewStorageSignature
+//     );
+//     zkapp.sign(zkappKey);
+//   });
+//   await transaction.send();
+
+//   let postIntertionRoot = zkapp.storageTreeRoot.get();
+//   zkapp.storageTreeRoot.assertEquals(postIntertionRoot);
+//   console.log(
+//     'OFF-CHAIN ROOT POST IMPLEMENTATION',
+//     postIntertionRoot.toString()
+//   );
+// }
+async function returnAddresses (){
+  let object ={
+    user:userAccountAddress,
+    zkapp:zkappAddress,
+    feePayer:minadoFeePayerAccount
+  }
+  return object
+}
 //   'Initial state of the merkle tree =>>',
 //   zkapp.merkleTreeRoot.get().toString()
 // );
@@ -232,6 +382,7 @@ async function deposit(amount: Number) {
   console.log('Depositing Test funds ......');
 
   await updateMerkleTree(commitment);
+  // await updateMerkleTreeOffchain(commitment);
   //TODO: DELETE
   // let rawEvents = zkapp.fetchEvents();
   // let despositEvents = (await rawEvents).filter((a) => (a.type = `deposit`));
@@ -281,7 +432,7 @@ function normalizeDepositEvents(depositEvent: any) {
     let eventsNormalized = element.toFields(element);
     //TODO:CHeck if we want this as string
     let object = {
-      commitment: eventsNormalized[0].toString(),
+      commitment: eventsNormalized[0],
       leafIndex: eventsNormalized[1].toString(),
       timeStamp: eventsNormalized[2].toString(),
     };
@@ -301,7 +452,6 @@ async function depositTestFunds() {
   });
   console.log('Second TX');
   await tx2.send();
-  return userAccountKey;
   console.log('UserWallet funded succesfully');
 }
 
@@ -330,7 +480,14 @@ function getAccountBalance(address: any) {
 async function createNullifier(publicKey: PublicKey) {
   let keyString = publicKey.toFields();
   let secret = Field.random();
+  if(secret.toString().trim().length!== 77){
+    secret=Field.random()
+  }
+  //TODO: DELETE
+  console.log('SECREETTTTTT => ',secret.toString())
+  //TODO: Sometimes this has is a lenght sometimes is another one 
   let nullifierHash = Poseidon.hash([...keyString, secret]);
+  console.log('NULLFIERHASH',nullifierHash.toString())
 
   return nullifierHash;
 }
@@ -349,7 +506,6 @@ function createCommitment(nullifier: Field, secret: Field) {
  */
 async function sendFundstoMixer(sender: PrivateKey, amount: any) {
   let tx = await Mina.transaction(sender, () => {
-    console.log('SENDER')
     let update = AccountUpdate.createSigned(sender);
     //The userAddress is funced
     update.send({ to: zkappAddress, amount: amount });
@@ -386,8 +542,8 @@ function createDeposit(nullifier: Field, secret: Field): Deposit {
 }
 
 function createDepositFromPreimage(depositPreimage: string): Deposit {
-  const nullifier = new Field(depositPreimage?.slice(0, 31));
-  const secret = new Field(depositPreimage?.slice(31, 62));
+  const nullifier = new Field(depositPreimage?.slice(0, 77));
+  const secret = new Field(depositPreimage?.slice(77));
 
   return createDeposit(nullifier, secret);
 }
@@ -398,9 +554,8 @@ function generateNoteString(note: Note): string {
 
 function parseNoteString(noteString: string): Note {
   const noteRegex =
-    /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&0x(?<depositPreimage>[0-9a-fA-F]{124})&Minado/g;
+    /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<depositPreimage>[0-9a-fA-F]{153,154})&Minado/g;
   const match = noteRegex.exec(noteString);
-  console.log('NOTE STRINGGGG ERORRR => ', noteString);
 
   if (!match) {
     throw new Error('The note has invalid format');
@@ -410,7 +565,7 @@ function parseNoteString(noteString: string): Note {
 
   return {
     currency: match.groups?.currency!,
-    amount: new UInt64(match.groups?.ammount),
+    amount: new UInt64(match.groups?.amount),
     depositPreimage: depositPreimage!,
   };
 }
@@ -424,11 +579,19 @@ function parseNoteString(noteString: string): Note {
  4. A nullifier event should be created in the moment of withdraw to avoid double spending. 
  */
 async function withdraw(noteString: string) {
-  let parsedNote = parseNoteString(noteString);
-  console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
-  let deposit = createDepositFromPreimage(parsedNote.depositPreimage);
-  console.log('DEPOSIT IN WITHDRAW  =>>> ', deposit);
-  validateProof(deposit);
+  try {
+    let parsedNote = parseNoteString(noteString);
+    let deposit = createDepositFromPreimage(parsedNote.depositPreimage)
+    console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
+    console.log('DEPOSIT AFTER PREIMAGE  =>>> ', deposit);
+    validateProof(deposit);
+    let amount=parsedNote.amount
+    console.log('AMOUNT TO WITHDRAW => ', amount)
+    withdrawFunds(userAccountAddress,amount)
+  }
+  catch(e){
+    console.log(e)
+  }
 }
 //TODO: Review these functions.
 /**
@@ -443,25 +606,37 @@ async function validateProof(deposit: Deposit) {
   //Find the commitment in the events
   let depositEvents = await getDepositEvents();
   //TODO: LEAVE AS FIELD IF NECCESARY
-  let commitmentDeposit = deposit.commitment.toString();
+  // console.log('deposit after note => ')
+  let commitmentDeposit = deposit.commitment;
+  //TODO PUT AMMOUNT INTO A VARIABLE 
   console.log('DEPOSIT EVENTS WITHDRAW => ', depositEvents);
+  console.log('COMMITMENT COMING', commitmentDeposit.toString());
+  console.log('COMMITMENT IN EVENT FIELD',depositEvents[0].commitment)
+  console.log('COMMITMENT IN EVENT STRING',depositEvents[0].commitment.toString())
+  console.log('IS THE COMMITMENT THE SAME?', depositEvents[0].commitment == commitmentDeposit)
+  //Search for an event with a given commitment
   let eventWithCommitment = depositEvents.find(
-    (e) => e.commitment === commitmentDeposit
+    (e) => e.commitment.toString() === commitmentDeposit.toString()
   );
   console.log('NORMALIZED EVENT COMING WITHDRAW', eventWithCommitment);
-  let leafIndex = eventWithCommitment?.leafIndex.toBigInt();
-  console.log('LEAF INDEXXX coming from event', leafIndex);
+  //TODO: Change this
+  let leafIndex = eventWithCommitment?.leafIndex;
+  console.log('LEAF INDEXXX coming from event GOING TO PROOF', BigInt(leafIndex));
   //TODO: Add validations of the event
-  //Recostructing the Merkle Tree
-  // let merkleTreeWitness = merkleTree.getWitness(leafIndex);
-  // let merkleWitness = new MerkleWitness(merkleTreeWitness);
-
-  //  try {
-  //   zkapp.verifyProof(commitment, merkleWitness);
-  // } catch (e) {
-  //   console.log('Proof not valid');
-  //   console.log(e);
-  //   }
+  
+  let merkleTreeWitness = merkleTree.getWitness(BigInt(leafIndex));
+  let merkleWitness =new MerkleWitness8((merkleTreeWitness))
+  console.log('Merkle Proof => ',merkleWitness)
+  
+  try {
+   zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
+    console.log("VERIFICATION COMPLETED, RELEASING FUNDS")
+  } catch (e) {
+    console.log('Proof not valid');
+    console.log(e);
+  }
+  //TODO: ADD basic catch erros returns to link it with the front-end 
+  return true;
   //Verifying the nullifier
 }
 async function getDepositEvents() {
@@ -483,6 +658,16 @@ async function initTest() {
   console.log('NOTE STRING FROM DEPOSIT => ', noteString);
   withdraw(noteString);
 }
+async function withdrawFunds(reciever:PublicKey, amount: any) {
+  let tx = await Mina.transaction(minadoFeePayer, () => {
+    let update = AccountUpdate.createSigned(zkappKey);
+    //The userAddress is funced
+    update.send({ to: reciever, amount: amount });
+    console.log(`Sendind Funds to address ${reciever}`);
+    //Parece que la zkapp no puede recibir fondos
+  });
+  await tx.send();
+}
 // initTest();
 // async function verifyTransaction(leafIndex,commitment) {
 //   let withdrawTx = await Mina.transaction(zkappKey, () => {
@@ -502,15 +687,4 @@ async function initTest() {
 //   });
 //   await withdrawTx.send();
 // }
-// function getState(zkappAddress: PublicKey) {
-//   let zkapp = new MixerZkapp(zkappAddress);
-//   let commitment1 = fieldToHex(zkapp.commitment1.get());
-//   let commitment2 = fieldToHex(zkapp.commitment2.get());
-//   let hits1 = zkapp.hits1.get().toString();
-//   let hits2 = zkapp.hits2.get().toString();
-//   let turn = zkapp.turn.get().toString();
-//   let guessX = zkapp.guessX.get().toString();
-//   let guessY = zkapp.guessY.get().toString();
 
-//   return { commitment1, commitment2, hits1, hits2, turn, guessX, guessY };
-// }
