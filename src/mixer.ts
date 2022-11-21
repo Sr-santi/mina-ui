@@ -41,6 +41,7 @@ export {
   depositTestFunds,
   deposit,
   getAccountBalance,
+  getAccountBalanceString,
   returnAddresses,
 };
 
@@ -475,6 +476,10 @@ async function updateMerkleTree(commitment: Field) {
 
 function getAccountBalance(address: any) {
   return Mina.getBalance(address);
+}
+
+function getAccountBalanceString(address: any) {
+  return Mina.getBalance(address).toString();
 }
 
 /**

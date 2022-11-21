@@ -10,9 +10,19 @@ import {
 
 interface Props {
   children?: ReactNode;
+  operationExec: any;
+  isConnectedWallet: boolean;
+  getAddresses: () => any;
+  getBalance: (address) => any;
 }
 
-export default function Header({ children }: Props) {
+export default function Header({
+  children,
+  operationExec,
+  isConnectedWallet,
+  getAddresses,
+  getBalance,
+}: Props) {
   // const handleClick = () => {
   //   console.log('Click happened');
   // };
@@ -26,7 +36,14 @@ export default function Header({ children }: Props) {
               {/* <img src="/harpo_logo.svg" alt="logo" /> */}
             </HeaderLogo>
           </HeaderLogoContainer>
-          <BalanceContainer />
+          {isConnectedWallet && (
+            <BalanceContainer
+              operationExec={operationExec}
+              getAddresses={getAddresses}
+              getBalance={getBalance}
+              isConnectedWallet={isConnectedWallet}
+            />
+          )}
         </HeaderWrapper>
       </HeaderContainer>
     </>

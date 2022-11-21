@@ -43,6 +43,7 @@ function DeployContract({ zkapp, setZkapp }) {
   const [isDeployFinish, setIsDeployFinish] = useState(false);
   const [isConnectedWallet, setIsConnectedWallet] = useState(false);
   const [noteString, setNoteString] = useState('');
+  const [operationExec, setOperationExec] = useState({});
 
   async function deploy() {
     if (isLoading) return;
@@ -65,9 +66,9 @@ function DeployContract({ zkapp, setZkapp }) {
   async function depositFunction(amount) {
     setNoteString('');
     let Mixer = await import('../dist/mixer.js');
-    console.log('AMMOUUNTTT => ', amount, 'Type of => ', typeof amount);
     const note = await Mixer.deposit(amount);
-    console.log('note => ', note);
+    // execute a re-render to update the balances
+    setOperationExec({ ...operationExec });
 
     setNoteString(note);
   }
@@ -79,7 +80,7 @@ function DeployContract({ zkapp, setZkapp }) {
   }
   async function getBalance(address) {
     let Mixer = await import('../dist/mixer.js');
-    let balance = Mixer.getAccountBalance(address);
+    let balance = Mixer.getAccountBalanceString(address);
     console.log('BALANCE => ', balance);
     return balance;
   }
@@ -95,7 +96,12 @@ function DeployContract({ zkapp, setZkapp }) {
     <div className={styles.container}>
       <LandingLayout>
         {/* change something here in Header */}
-        <Header></Header>
+        <Header
+          isConnectedWallet={isConnectedWallet}
+          getAddresses={getAddresses}
+          getBalance={getBalance}
+          operationExec={operationExec}
+        ></Header>
         <ActionButton
           action={!isConnectedWallet ? depositTestFundsFunction : () => {}}
           size="medium"
@@ -112,6 +118,7 @@ function DeployContract({ zkapp, setZkapp }) {
           <TransactionCard
             note={noteString}
             depositFunds={depositFunction}
+            setOperationExec={setOperationExec}
           ></TransactionCard>
         )}
         {/* <ScrollingText title={'SpeeDao'} /> */}

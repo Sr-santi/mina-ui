@@ -3,7 +3,6 @@ import ActionButton from '../ActionButton';
 import React, { ReactNode, useState, useEffect } from 'react';
 import AccountInput from './AccountInput';
 import AmountOptions from './AmountOptions';
-import { Dialog } from '@headlessui/react';
 import {
   CardButton,
   CardButtonsContainer,
