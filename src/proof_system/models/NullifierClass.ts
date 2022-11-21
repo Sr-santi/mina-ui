@@ -17,8 +17,5 @@ import {
       this.nullifier = nullifier;
       this.timeStamp = timeStamp;
     }
-    toFieldsCommitment(): Field[] {
-      return this.nullifier.toFields();
-    }
   }
   

@@ -43,7 +43,7 @@ export {
   getAccountBalance,
   getAccountBalanceString,
   returnAddresses,
-  withdraw
+  withdraw,
 };
 
 type Witness = { isLeft: boolean; sibling: Field }[];
@@ -57,6 +57,20 @@ const merkleTree = new MerkleTreeInit(MerkleTreeHeight);
 // class MerkleWitness extends MerkleWitness(MerkleTreeHeight) {}
 //
 let initialIndex: Field = new Field(0n);
+function normalizeNullifier(nullifierEvent: any) {
+  let newEvents = [];
+  for (let i = 0; i < nullifierEvent.length; i++) {
+    let element = nullifierEvent[i].event;
+    let eventsNormalized = element.toFields(element);
+    //TODO:CHeck if we want this as string
+    let object = {
+      nullifier: eventsNormalized[0],
+      timeStamp: Field,
+    };
+    newEvents.push(object);
+  }
+  return newEvents;
+}
 export class MixerZkApp extends SmartContract {
   //state variables
   @state(Field) x = State<Field>();
@@ -140,6 +154,7 @@ export class MixerZkApp extends SmartContract {
       timeStamp: new Field(2),
     };
     this.emitEvent('deposit', deposit);
+    // this.emitNullifierEvent(Field(1))
   }
   @method updateOffchain(
     leafIsEmpty: Bool,
@@ -173,7 +188,6 @@ export class MixerZkApp extends SmartContract {
         leafWitness: path,
       },
     ];
-
     //Fucntion to verify that the update really came from the existing
 
     const storedNewRoot = OffChainStorage.assertRootUpdateValid(
@@ -202,6 +216,28 @@ export class MixerZkApp extends SmartContract {
     this.merkleTreeRoot.assertEquals(merkleTreeRoot);
 
     witnessMerkleRoot.assertEquals(merkleTreeRoot);
+  }
+  @method emitNullifierEvent(nullifierHash: Field) {
+    let nullifierEvent = {
+      nullifier: nullifierHash,
+      timeStamp: Field(1),
+    };
+    this.emitEvent('nullifier', nullifierEvent);
+    console.log('Nullifier Event emmited', nullifierEvent);
+  }
+  @method async verifyNullifier(nullifier: Field) {
+    console.log('VERIFICATION OF NULLIFIER STARTED');
+    // let rawEvents = await this.fetchEvents();
+    // let nullifierEvents =  rawEvents.filter((a) => (a.type = `nullifier`));
+    // console.log('COMING NULLIFIER EVENTS')
+    // let normalizedNullifierEvents =normalizeNullifier(nullifierEvents);
+    // console.log('Normalized events => ',normalizedNullifierEvents)
+    // console.log('Normalized events => ', rawEvents);
+    //Search for an event with a given commitment
+    // let eventWithNullifier = normalizedNullifierEvents.find(
+    // (e) => e.nullifier.toString() === nullifier.toString()
+    // );
+    // console.log('ARE THERE EVENTS? ->',eventWithNullifier)
   }
 }
 
@@ -388,7 +424,8 @@ async function deposit(amount: Number) {
   console.log('NULLIFIER => ', nullifier.toString());
   console.log('COMMITMENT Pre-Insertion =>', commitment.toString());
   console.log('Depositing Test funds ......');
-
+  //TODO: DELETE
+  // await emitNullifierEvent(Field(1));
   await updateMerkleTree(commitment);
   await sendFundstoMixer(userAccountKey, amount);
   const note = {
@@ -427,7 +464,6 @@ function normalizeDepositEvents(depositEvent: any) {
 }
 //TODO: Check why when sending more 100 mina is causing an overflow
 //Overflow happens if there is not enough money to cover the gas fees.
-
 async function depositTestFunds() {
   let tx2 = await Mina.transaction(minadoFeePayer, () => {
     AccountUpdate.fundNewAccount(minadoFeePayer);
@@ -450,6 +486,13 @@ async function updateMerkleTree(commitment: Field) {
   console.log('POST State Merkle Tree =>>>>>>', rawMerkleTree);
   const newIndex = zkapp.lastIndexAdded.get().toBigInt();
   console.log('POST State Index =>>>>>>', newIndex);
+}
+async function emitNullifierEvent(nullifierHash: Field) {
+  let tx3 = await Mina.transaction(minadoFeePayer, () => {
+    zkapp.emitNullifierEvent(nullifierHash);
+    zkapp.sign(zkappKey);
+  });
+  await tx3.send();
 }
 
 function getAccountBalance(address: any) {
@@ -477,7 +520,6 @@ async function createNullifier(publicKey: PublicKey) {
   //TODO: Sometimes this has is a lenght sometimes is another one
   let nullifierHash = Poseidon.hash([...keyString, secret]);
   console.log('NULLFIERHASH', nullifierHash.toString());
-
   return nullifierHash;
 }
 
@@ -508,10 +550,9 @@ Currency, amount, netID, note => deposit(secret, nullifier)
 */
 type Deposit = {
   nullifier: Field;
-  secret: Field,
+  secret: Field;
   commitment: Field;
 };
-
 
 type Note = {
   currency: string;
@@ -533,7 +574,6 @@ function generateNoteString(note: Note): string {
   return `Minado&${note.currency}&${note.amount}&${note.nullifier}%${note.secret}&Minado`;
 }
 
-
 function parseNoteString(noteString: string): Note {
   const noteRegex =
     /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
@@ -545,7 +585,7 @@ function parseNoteString(noteString: string): Note {
 
   return {
     currency: match.groups?.currency!,
-    amount: new UInt64(match.groups?.amount),
+    amount: new UInt64(Number(match.groups?.amount)),
     nullifier: new Field(match.groups?.nullifier!),
     secret: new Field(match.groups?.secret!),
   };
@@ -559,12 +599,24 @@ function parseNoteString(noteString: string): Note {
  3. Validate Merkle Proof and nullifier.Fetch Nullifier events. 
  4. A nullifier event should be created in the moment of withdraw to avoid double spending. 
  */
- async function withdraw(noteString: string) {
-  let parsedNote = parseNoteString(noteString);
-  console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
-  let deposit = createDeposit(parsedNote.nullifier, parsedNote.secret);
-  console.log('DEPOSIT IN WITHDRAW  =>>> ', deposit);
-  validateProof(deposit);
+async function withdraw(noteString: string) {
+
+    /**Note is parsed */
+    let parsedNote = parseNoteString(noteString);
+    console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
+    let deposit = createDeposit(parsedNote.nullifier, parsedNote.secret);
+    /**Verofy the Merkle Path */
+    await validateProof(deposit);
+    let ammount =parsedNote.amount.value
+    console.log('TYPE OF AMOUNT',typeof(parsedNote.amount))
+    console.log('AMOOUNT VALUE IN OBJECT',ammount)
+    console.log('AMOOUNT VALUE IN OBJECT',typeof(ammount))
+    /**Verify Nullifier */
+    // let nullifier = Field(1);
+    // zkapp.verifyNullifier(nullifier);
+    /**Withdraw funds and emit nullifier event */
+    await withdrawFunds(userAccountAddress,ammount)
+   
 }
 //TODO: Review these functions.
 /**
@@ -577,6 +629,7 @@ async function validateProof(deposit: Deposit) {
    * Merkle Tree Validation.
    */
   //Find the commitment in the events
+  console.log('RUNNING MERKLE PATH VALIDATION')
   let depositEvents = await getDepositEvents();
   //TODO: LEAVE AS FIELD IF NECCESARY
   // console.log('deposit after note => ')
@@ -624,6 +677,7 @@ async function validateProof(deposit: Deposit) {
 async function getDepositEvents() {
   let rawEvents = await zkapp.fetchEvents();
   let despositEvents = (await rawEvents).filter((a) => (a.type = `deposit`));
+  console.log('DEPOSIT EVENTS GOING TO NORMALIZE', despositEvents)
   let normalizedDepositEvents = normalizeDepositEvents(despositEvents);
   return normalizedDepositEvents;
 }
@@ -641,7 +695,7 @@ async function initTest() {
   withdraw(noteString);
 }
 async function withdrawFunds(reciever: PublicKey, amount: any) {
-  let tx = await Mina.transaction(minadoFeePayer, () => {
+  let tx = await Mina.transaction(zkappKey, () => {
     let update = AccountUpdate.createSigned(zkappKey);
     //The userAddress is funced
     update.send({ to: reciever, amount: amount });
@@ -649,6 +703,8 @@ async function withdrawFunds(reciever: PublicKey, amount: any) {
     //Parece que la zkapp no puede recibir fondos
   });
   await tx.send();
+  console.log('BALANCE ZKAPP ACCOUNT => ',getAccountBalanceString(zkappAddress))
+  // console.log('DEPOSIT IN WITHDRAW  =>>> ', deposit);
 }
 
 // initTest();
@@ -666,7 +722,7 @@ async function withdrawFunds(reciever: PublicKey, amount: any) {
 //       console.log(e);
 //     }
 
-//     update.send({ to: userAccountAddress, amount: amountToTransfer });
+    // update.send({ to: userAccountAddress, amount: amountToTransfer });
 //   });
 //   await withdrawTx.send();
 // }

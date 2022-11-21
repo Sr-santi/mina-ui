@@ -89,6 +89,7 @@ function DeployContract({ zkapp, setZkapp }) {
     let withdraw = Mixer.withdraw(noteString);
     console.log('BALANCE => ', withdraw);
     alert('RELEASING FUNDS ')
+    setOperationExec({ ...operationExec });
     // return balance;
   }
   return (
