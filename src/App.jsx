@@ -86,9 +86,9 @@ function DeployContract({ zkapp, setZkapp }) {
   }
   async function withdraw(noteString) {
     let Mixer = await import('../dist/mixer.js');
-    let balance = Mixer.withdraw(noteString);
-    console.log('BALANCE => ', balance);
-    return balance;
+    let withdraw = Mixer.withdraw(noteString);
+    console.log('BALANCE => ', withdraw);
+    // return balance;
   }
   return (
     // <Layout>
