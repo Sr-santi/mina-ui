@@ -25,7 +25,7 @@ import {
 import DepositClass from './proof_system/models/DepositClass.js';
 import NullifierClass from './proof_system/models/NullifierClass.js';
 import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
-export { deploy ,depositTestFunds, deposit};
+export { deploy ,depositTestFunds, deposit,getAccountBalance,returnAddresses};
 
 await isReady;
 
@@ -145,7 +145,14 @@ let zkappAddress = zkappKey.toPublicKey();
 let zkapp = new MixerZkApp(zkappAddress);
 //This initial balance will fund our minadoFeePayer
 // let initialBalance = 10_000_001;
-
+async function returnAddresses (){
+  let object ={
+    user:userAccountAddress,
+    zkapp:zkappAddress,
+    feePayer:minadoFeePayerAccount
+  }
+  return object
+}
 //TODO: ADD STATE INTERFACE IF NECESSARY
 type Interface = {
   // getState(): { commitment1: string; commitment2: string, hits1: string, hits2: string, turn: string, guessX: string, guessY: string };

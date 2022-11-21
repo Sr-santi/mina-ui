@@ -11,6 +11,7 @@ import TransactionCard from '@Components/TransactionCard';
 //styles
 import styles from './App.css';
 import './styles/output.css';
+import { PublicKey } from 'snarkyjs';
 
 // some style params
 let grey = '#cccccc';
@@ -70,7 +71,18 @@ function DeployContract({ zkapp, setZkapp }) {
 
     setNoteString(note);
   }
-
+  async function getAddresses(){
+    let Mixer = await import('../dist/mixer.js');
+    let addresses= Mixer.returnAddresses()
+    console.log('Addresses => ', addresses)
+    return addresses
+  }
+  async function getBalance(address){
+    let Mixer = await import('../dist/mixer.js');
+  let balance = Mixer.getAccountBalance(address)
+  console.log('BALANCE => ', balance)
+  return balance
+  }
   return (
     // <Layout>
     //   <Header>Step 1: Deploy the contract</Header>
