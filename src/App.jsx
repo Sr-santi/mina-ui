@@ -88,6 +88,7 @@ function DeployContract({ zkapp, setZkapp }) {
     let Mixer = await import('../dist/mixer.js');
     let withdraw = Mixer.withdraw(noteString);
     console.log('BALANCE => ', withdraw);
+    alert('RELEASING FUNDS ')
     // return balance;
   }
   return (
