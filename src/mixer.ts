@@ -265,7 +265,7 @@ async function deploy() {
 //   // RECONSTRUCTING THE TREE
 //   const tree = OffChainStorage.mapToTree(MerkleTreeHeight, idx2fields);
 //   //Crearing the merkle witness
-//   //TODO: Tutn leaf index into a BigInt
+//   //TODO: Turn leaf index into a BigInt
 //   const leafWitness = new MerkleWitness8(tree.getWitness(index));
 
 //   // get the previopus commitment
@@ -674,6 +674,7 @@ async function withdrawFunds(reciever: PublicKey, amount: any) {
   });
   await tx.send();
 }
+
 // initTest();
 // async function verifyTransaction(leafIndex,commitment) {
 //   let withdrawTx = await Mina.transaction(zkappKey, () => {
