@@ -390,30 +390,7 @@ async function deposit(amount: Number) {
   console.log('Depositing Test funds ......');
 
   await updateMerkleTree(commitment);
-  // await updateMerkleTreeOffchain(commitment);
-  //TODO: DELETE
-  // let rawEvents = zkapp.fetchEvents();
-  // let despositEvents = (await rawEvents).filter((a) => (a.type = `deposit`));
-  // let normalizedDepositEvents = normalizeDepositEvents(despositEvents);
-  // console.log('NORMALIZED DEPOSIT EVENTTTT=> ', normalizedDepositEvents);
-  //TODO: ADD HOW TO GET A COMMITMENT FROM THE RETURNED OBJECT
-  // let eventCommitment=despositEvents[0].event.commitment
-  //TODO: ADD LOGIC FOR N NUMBER OF EVENTS
-  // let commitmentEvent = despositEvents[0].event
-  //   .toFields(despositEvents[0].event)[0]
-  //   .toString();
-  // let leafIndexEvent = despositEvents[0].event
-  //   .toFields(despositEvents[0].event)[1]
-  //   .toString();
-  // let timeStamp = despositEvents[0].event
-  //   .toFields(despositEvents[0].event)[2]
-  //   .toString();
-
   await sendFundstoMixer(userAccountKey, amount);
-  /**
-   * TODO: Add note creation
-   */
-  // const deposit = createDeposit(nullifier, secret);
   const note = {
     currency: 'Mina',
     amount: new UInt64(amount),
@@ -423,7 +400,6 @@ async function deposit(amount: Number) {
 
   const noteString = generateNoteString(note);
   let finalBalanceUser = getAccountBalance(userAccountAddress).toString();
-  //TODO: BUG HERE
   let finalBalanceZkApp = getAccountBalance(zkappAddress).toString();
   let finalBalanceFeePayer = getAccountBalance(
     minadoFeePayerAccount
