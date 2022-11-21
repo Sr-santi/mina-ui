@@ -43,6 +43,7 @@ export {
   getAccountBalance,
   getAccountBalanceString,
   returnAddresses,
+  withdraw
 };
 
 type Witness = { isLeft: boolean; sibling: Field }[];
@@ -412,11 +413,12 @@ async function deposit(amount: Number) {
   /**
    * TODO: Add note creation
    */
-  const deposit = createDeposit(nullifier, secret);
+  // const deposit = createDeposit(nullifier, secret);
   const note = {
     currency: 'Mina',
     amount: new UInt64(amount),
-    depositPreimage: deposit.preimage,
+    nullifier: nullifier,
+    secret: secret,
   };
 
   const noteString = generateNoteString(note);
@@ -530,54 +532,46 @@ Currency, amount, netID, note => deposit(secret, nullifier)
 */
 type Deposit = {
   nullifier: Field;
-  secret: Field;
-  preimage: string;
+  secret: Field,
   commitment: Field;
 };
+
 
 type Note = {
   currency: string;
   amount: UInt64;
-  depositPreimage: string;
+  nullifier: Field;
+  secret: Field;
 };
-
 function createDeposit(nullifier: Field, secret: Field): Deposit {
   let deposit = {
     nullifier,
     secret,
-    preimage: nullifier.toString().concat(secret.toString()),
     commitment: createCommitment(nullifier, secret),
   };
 
   return deposit;
 }
 
-function createDepositFromPreimage(depositPreimage: string): Deposit {
-  const nullifier = new Field(depositPreimage?.slice(0, 77));
-  const secret = new Field(depositPreimage?.slice(77));
-
-  return createDeposit(nullifier, secret);
-}
-
 function generateNoteString(note: Note): string {
-  return `Minado&${note.currency}&${note.amount}&${note.depositPreimage}&Minado`;
+  return `Minado&${note.currency}&${note.amount}&${note.nullifier}%${note.secret}&Minado`;
 }
+
 
 function parseNoteString(noteString: string): Note {
   const noteRegex =
-    /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<depositPreimage>[0-9a-fA-F]{153,154})&Minado/g;
+    /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
   const match = noteRegex.exec(noteString);
 
   if (!match) {
     throw new Error('The note has invalid format');
   }
 
-  const depositPreimage = match.groups?.depositPreimage;
-
   return {
     currency: match.groups?.currency!,
     amount: new UInt64(match.groups?.amount),
-    depositPreimage: depositPreimage!,
+    nullifier: new Field(match.groups?.nullifier!),
+    secret: new Field(match.groups?.secret!),
   };
 }
 /**
@@ -589,19 +583,12 @@ function parseNoteString(noteString: string): Note {
  3. Validate Merkle Proof and nullifier.Fetch Nullifier events. 
  4. A nullifier event should be created in the moment of withdraw to avoid double spending. 
  */
-async function withdraw(noteString: string) {
-  try {
-    let parsedNote = parseNoteString(noteString);
-    let deposit = createDepositFromPreimage(parsedNote.depositPreimage);
-    console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
-    console.log('DEPOSIT AFTER PREIMAGE  =>>> ', deposit);
-    validateProof(deposit);
-    let amount = parsedNote.amount;
-    console.log('AMOUNT TO WITHDRAW => ', amount);
-    withdrawFunds(userAccountAddress, amount);
-  } catch (e) {
-    console.log(e);
-  }
+ async function withdraw(noteString: string) {
+  let parsedNote = parseNoteString(noteString);
+  console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
+  let deposit = createDeposit(parsedNote.nullifier, parsedNote.secret);
+  console.log('DEPOSIT IN WITHDRAW  =>>> ', deposit);
+  validateProof(deposit);
 }
 //TODO: Review these functions.
 /**
