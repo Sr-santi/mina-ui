@@ -71,17 +71,17 @@ function DeployContract({ zkapp, setZkapp }) {
 
     setNoteString(note);
   }
-  async function getAddresses(){
+  async function getAddresses() {
     let Mixer = await import('../dist/mixer.js');
-    let addresses= Mixer.returnAddresses()
-    console.log('Addresses => ', addresses)
-    return addresses
+    let addresses = Mixer.returnAddresses();
+    console.log('Addresses => ', addresses);
+    return addresses;
   }
-  async function getBalance(address){
+  async function getBalance(address) {
     let Mixer = await import('../dist/mixer.js');
-  let balance = Mixer.getAccountBalance(address)
-  console.log('BALANCE => ', balance)
-  return balance
+    let balance = Mixer.getAccountBalance(address);
+    console.log('BALANCE => ', balance);
+    return balance;
   }
   return (
     // <Layout>
@@ -94,6 +94,7 @@ function DeployContract({ zkapp, setZkapp }) {
     // </Layout>
     <div className={styles.container}>
       <LandingLayout>
+        {/* change something here in Header */}
         <Header></Header>
         <ActionButton
           action={!isConnectedWallet ? depositTestFundsFunction : () => {}}

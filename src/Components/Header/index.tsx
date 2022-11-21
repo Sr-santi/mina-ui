@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { ReactNode, useState, useEffect } from 'react';
+import BalanceContainer from '../BalanceIndicator';
 import {
   HeaderContainer,
   HeaderLogo,
@@ -16,7 +17,7 @@ export default function Header({ children }: Props) {
   //   console.log('Click happened');
   // };
   return (
-    <React.Fragment>
+    <>
       <HeaderContainer>
         <HeaderWrapper>
           <HeaderLogoContainer>
@@ -25,8 +26,9 @@ export default function Header({ children }: Props) {
               {/* <img src="/harpo_logo.svg" alt="logo" /> */}
             </HeaderLogo>
           </HeaderLogoContainer>
+          <BalanceContainer />
         </HeaderWrapper>
       </HeaderContainer>
-    </React.Fragment>
+    </>
   );
 }

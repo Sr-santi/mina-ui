@@ -3,8 +3,7 @@ import styled from 'styled-components';
 export const HeaderContainer = styled.header`
   position: fixed;
   display: flex;
-  padding-top: 24px;
-  padding: 24px 48px 0px 48px;
+  padding: 15px 48px 0px 48px;
   width: 100%;
   background-image: linear-gradient(
     180deg,

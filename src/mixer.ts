@@ -36,7 +36,13 @@ import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
 // export { deploy };
 
 await isReady;
-export { deploy ,depositTestFunds, deposit,getAccountBalance,returnAddresses};
+export {
+  deploy,
+  depositTestFunds,
+  deposit,
+  getAccountBalance,
+  returnAddresses,
+};
 
 type Witness = { isLeft: boolean; sibling: Field }[];
 
@@ -188,7 +194,7 @@ export class MixerZkApp extends SmartContract {
    */
   @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness8) {
     let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
-    console.log('PROOF VERIFICATION ROOT => ',witnessMerkleRoot.toString())
+    console.log('PROOF VERIFICATION ROOT => ', witnessMerkleRoot.toString());
     //TODO: SHOULD COMO OFF-CHAIN
     let merkleTreeRoot = merkleTree.getRoot();
     this.merkleTreeRoot.assertEquals(merkleTreeRoot);
@@ -221,7 +227,7 @@ let zkapp = new MixerZkApp(zkappAddress);
 type Interface = {
   // getState(): { commitment1: string; commitment2: string, hits1: string, hits2: string, turn: string, guessX: string, guessY: string };
 };
-async function deploy (){
+async function deploy() {
   console.log('HERE');
   let tx = await Mina.transaction(minadoFeePayer, () => {
     AccountUpdate.fundNewAccount(minadoFeePayer);
@@ -311,13 +317,13 @@ async function deploy (){
 //     postIntertionRoot.toString()
 //   );
 // }
-async function returnAddresses (){
-  let object ={
-    user:userAccountAddress,
-    zkapp:zkappAddress,
-    feePayer:minadoFeePayerAccount
-  }
-  return object
+async function returnAddresses() {
+  let object = {
+    user: userAccountAddress,
+    zkapp: zkappAddress,
+    feePayer: minadoFeePayerAccount,
+  };
+  return object;
 }
 //   'Initial state of the merkle tree =>>',
 //   zkapp.merkleTreeRoot.get().toString()
@@ -480,14 +486,14 @@ function getAccountBalance(address: any) {
 async function createNullifier(publicKey: PublicKey) {
   let keyString = publicKey.toFields();
   let secret = Field.random();
-  if(secret.toString().trim().length!== 77){
-    secret=Field.random()
+  if (secret.toString().trim().length !== 77) {
+    secret = Field.random();
   }
   //TODO: DELETE
-  console.log('SECREETTTTTT => ',secret.toString())
-  //TODO: Sometimes this has is a lenght sometimes is another one 
+  console.log('SECREETTTTTT => ', secret.toString());
+  //TODO: Sometimes this has is a lenght sometimes is another one
   let nullifierHash = Poseidon.hash([...keyString, secret]);
-  console.log('NULLFIERHASH',nullifierHash.toString())
+  console.log('NULLFIERHASH', nullifierHash.toString());
 
   return nullifierHash;
 }
@@ -581,16 +587,15 @@ function parseNoteString(noteString: string): Note {
 async function withdraw(noteString: string) {
   try {
     let parsedNote = parseNoteString(noteString);
-    let deposit = createDepositFromPreimage(parsedNote.depositPreimage)
+    let deposit = createDepositFromPreimage(parsedNote.depositPreimage);
     console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
     console.log('DEPOSIT AFTER PREIMAGE  =>>> ', deposit);
     validateProof(deposit);
-    let amount=parsedNote.amount
-    console.log('AMOUNT TO WITHDRAW => ', amount)
-    withdrawFunds(userAccountAddress,amount)
-  }
-  catch(e){
-    console.log(e)
+    let amount = parsedNote.amount;
+    console.log('AMOUNT TO WITHDRAW => ', amount);
+    withdrawFunds(userAccountAddress, amount);
+  } catch (e) {
+    console.log(e);
   }
 }
 //TODO: Review these functions.
@@ -608,12 +613,18 @@ async function validateProof(deposit: Deposit) {
   //TODO: LEAVE AS FIELD IF NECCESARY
   // console.log('deposit after note => ')
   let commitmentDeposit = deposit.commitment;
-  //TODO PUT AMMOUNT INTO A VARIABLE 
+  //TODO PUT AMMOUNT INTO A VARIABLE
   console.log('DEPOSIT EVENTS WITHDRAW => ', depositEvents);
   console.log('COMMITMENT COMING', commitmentDeposit.toString());
-  console.log('COMMITMENT IN EVENT FIELD',depositEvents[0].commitment)
-  console.log('COMMITMENT IN EVENT STRING',depositEvents[0].commitment.toString())
-  console.log('IS THE COMMITMENT THE SAME?', depositEvents[0].commitment == commitmentDeposit)
+  console.log('COMMITMENT IN EVENT FIELD', depositEvents[0].commitment);
+  console.log(
+    'COMMITMENT IN EVENT STRING',
+    depositEvents[0].commitment.toString()
+  );
+  console.log(
+    'IS THE COMMITMENT THE SAME?',
+    depositEvents[0].commitment == commitmentDeposit
+  );
   //Search for an event with a given commitment
   let eventWithCommitment = depositEvents.find(
     (e) => e.commitment.toString() === commitmentDeposit.toString()
@@ -621,21 +632,24 @@ async function validateProof(deposit: Deposit) {
   console.log('NORMALIZED EVENT COMING WITHDRAW', eventWithCommitment);
   //TODO: Change this
   let leafIndex = eventWithCommitment?.leafIndex;
-  console.log('LEAF INDEXXX coming from event GOING TO PROOF', BigInt(leafIndex));
+  console.log(
+    'LEAF INDEXXX coming from event GOING TO PROOF',
+    BigInt(leafIndex)
+  );
   //TODO: Add validations of the event
-  
+
   let merkleTreeWitness = merkleTree.getWitness(BigInt(leafIndex));
-  let merkleWitness =new MerkleWitness8((merkleTreeWitness))
-  console.log('Merkle Proof => ',merkleWitness)
-  
+  let merkleWitness = new MerkleWitness8(merkleTreeWitness);
+  console.log('Merkle Proof => ', merkleWitness);
+
   try {
-   zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
-    console.log("VERIFICATION COMPLETED, RELEASING FUNDS")
+    zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
+    console.log('VERIFICATION COMPLETED, RELEASING FUNDS');
   } catch (e) {
     console.log('Proof not valid');
     console.log(e);
   }
-  //TODO: ADD basic catch erros returns to link it with the front-end 
+  //TODO: ADD basic catch erros returns to link it with the front-end
   return true;
   //Verifying the nullifier
 }
@@ -658,7 +672,7 @@ async function initTest() {
   console.log('NOTE STRING FROM DEPOSIT => ', noteString);
   withdraw(noteString);
 }
-async function withdrawFunds(reciever:PublicKey, amount: any) {
+async function withdrawFunds(reciever: PublicKey, amount: any) {
   let tx = await Mina.transaction(minadoFeePayer, () => {
     let update = AccountUpdate.createSigned(zkappKey);
     //The userAddress is funced
@@ -687,4 +701,3 @@ async function withdrawFunds(reciever:PublicKey, amount: any) {
 //   });
 //   await withdrawTx.send();
 // }
-
