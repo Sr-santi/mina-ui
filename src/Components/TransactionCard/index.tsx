@@ -14,6 +14,7 @@ import MyModal from '../../Components/MyModal';
 interface Props {
   children?: ReactNode;
   note: string;
+  withdraw: (note) => any;
   depositFunds: (amount: number) => void;
 }
 
@@ -22,6 +23,7 @@ type classState = '' | 'active';
 export default function TransactionCard({
   children,
   note,
+  withdraw,
   depositFunds,
 }: Props) {
   // const handleClick = () => {
@@ -35,7 +37,7 @@ export default function TransactionCard({
   /*  const [noteValue, setNoteValue] = useState(
     'AHIASIN89791823$@!@jhajskasjonnasI)QSN'
   ); */
-  const [recipientAccount, setRecipientAccount] = useState();
+  const [transferNote, setTransferNote] = useState();
   function updateButtonStyle() {
     if (btn1Class) {
       setBtn1Class('');
@@ -79,16 +81,15 @@ export default function TransactionCard({
         {btn2Class && (
           <CardFieldsContainer>
             {/* <AmountOptions option={amountOption} setOption={setAmountOption}></AmountOptions> */}
-            <AccountInput
-              text="Transfer note"
-              setAccount={setRecipientAccount}
-            />
+            <AccountInput text="Transfer note" setAccount={setTransferNote} />
             <AccountInput
               text="Recipient address"
               setAccount={setAccountRecipient}
             />
             <ActionButton
-              action={() => console.log('hola')}
+              action={() => {
+                withdraw(transferNote);
+              }}
               size="small"
               text="Withdraw"
             ></ActionButton>

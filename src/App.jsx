@@ -88,6 +88,7 @@ function DeployContract({ zkapp, setZkapp }) {
     let Mixer = await import('../dist/mixer.js');
     let balance = Mixer.withdraw(noteString);
     console.log('BALANCE => ', balance);
+    setOperationExec({ ...operationExec });
     return balance;
   }
   return (
@@ -124,6 +125,7 @@ function DeployContract({ zkapp, setZkapp }) {
           <TransactionCard
             note={noteString}
             depositFunds={depositFunction}
+            withdraw={withdraw}
             setOperationExec={setOperationExec}
           ></TransactionCard>
         )}
