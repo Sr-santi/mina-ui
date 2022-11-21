@@ -36,9 +36,7 @@ export const Modal = styled.div`
 `;
 
 export const NoteText = styled.p`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
   color: #a678d4;
 `;
 
