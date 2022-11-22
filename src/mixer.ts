@@ -154,6 +154,9 @@ export class MixerZkApp extends SmartContract {
       timeStamp: new Field(2),
     };
     this.emitEvent('deposit', deposit);
+    console.log('=>>>>>>SEEEE EVENT EMITED')
+    console.log(deposit)
+
     // this.emitNullifierEvent(Field(1))
   }
   @method updateOffchain(
@@ -212,16 +215,17 @@ export class MixerZkApp extends SmartContract {
     let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
     console.log('PROOF VERIFICATION ROOT => ', witnessMerkleRoot.toString());
     //TODO: SHOULD COMO OFF-CHAIN
-    let merkleTreeRoot = merkleTree.getRoot();
-    this.merkleTreeRoot.assertEquals(merkleTreeRoot);
+    let stateMerkleTreeRoot = this.merkleTreeRoot.get();
+    this.merkleTreeRoot.assertEquals( stateMerkleTreeRoot );
 
-    witnessMerkleRoot.assertEquals(merkleTreeRoot);
+    witnessMerkleRoot.assertEquals( stateMerkleTreeRoot );
   }
   @method emitNullifierEvent(nullifierHash: Field) {
     let nullifierEvent = {
       nullifier: nullifierHash,
       timeStamp: Field(1),
     };
+    //TODO: BUG HERE
     this.emitEvent('nullifier', nullifierEvent);
     console.log('Nullifier Event emmited', nullifierEvent);
   }
@@ -406,7 +410,6 @@ async function deposit(amount: Number) {
    */
   // await depositTestFunds();
   let initialBalanceUser = getAccountBalance(userAccountAddress).toString();
-  //TODO: BUG HERE
   let initialBalanceZkApp = getAccountBalance(zkappAddress).toString();
   let initialBalanceFeePayer = getAccountBalance(
     minadoFeePayerAccount
@@ -444,6 +447,7 @@ async function deposit(amount: Number) {
   console.log(`INTIAL BALANCE USER ACCOUNT:${finalBalanceUser} MINA`);
   console.log(`INTIAL BALANCE ZkApp:${finalBalanceZkApp} MINA`);
   console.log(`INTIAL BALANCE FeePayer:${finalBalanceFeePayer} MINA`);
+  // await emitNullifierEvent(Field(1))
   return noteString;
 }
 //TODO: Change type
@@ -451,12 +455,13 @@ function normalizeDepositEvents(depositEvent: any) {
   let newEvents = [];
   for (let i = 0; i < depositEvent.length; i++) {
     let element = depositEvent[i].event;
-    let eventsNormalized = element.toFields(element);
+    //**BUG HERE */
+    let eventsNormalized = element.toFields(null);
     //TODO:CHeck if we want this as string
     let object = {
       commitment: eventsNormalized[0],
-      leafIndex: eventsNormalized[1].toString(),
-      timeStamp: eventsNormalized[2].toString(),
+      leafIndex: eventsNormalized[1]?.toString(),
+      timeStamp: eventsNormalized[2]?.toString(),
     };
     newEvents.push(object);
   }
@@ -611,6 +616,9 @@ async function withdraw(noteString: string) {
     console.log('TYPE OF AMOUNT',typeof(parsedNote.amount))
     console.log('AMOOUNT VALUE IN OBJECT',ammount)
     console.log('AMOOUNT VALUE IN OBJECT',typeof(ammount))
+    // zkapp.emitNullifierEvent(Field(1))
+    // let getEventsNullifier = await zkapp.fetchEvents()
+    // console.log('TESTING EVENTS IN WITHDRAW', getEventsNullifier)
     /**Verify Nullifier */
     // let nullifier = Field(1);
     // zkapp.verifyNullifier(nullifier);
@@ -693,6 +701,7 @@ async function initTest() {
   let noteString = await deposit(100);
   console.log('NOTE STRING FROM DEPOSIT => ', noteString);
   withdraw(noteString);
+  
 }
 async function withdrawFunds(reciever: PublicKey, amount: any) {
   let tx = await Mina.transaction(zkappKey, () => {
