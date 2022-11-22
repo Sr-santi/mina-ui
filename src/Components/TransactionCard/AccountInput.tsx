@@ -10,6 +10,7 @@ import {
 interface Props {
   children?: ReactNode;
   account?: any;
+  inputValue?: string;
   setAccount: any;
   text: string;
 }
@@ -17,6 +18,7 @@ interface Props {
 export default function AccountInput({
   children,
   account,
+  inputValue,
   setAccount,
   text,
 }: Props) {
@@ -25,6 +27,7 @@ export default function AccountInput({
       <AccountInputContainer>
         <label htmlFor="">{text}</label>
         <StyleInput
+          value={inputValue}
           onChange={(e) => {
             setAccount(e.target.value);
           }}
