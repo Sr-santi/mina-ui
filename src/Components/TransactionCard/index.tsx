@@ -33,7 +33,7 @@ export default function TransactionCard({
   const [btn1Class, setBtn1Class] = useState<classState>('active');
   const [btn2Class, setBtn2Class] = useState<classState>('');
   const [amountOption, setAmountOption] = useState<number>(1);
-  const [accountRecipient, setAccountRecipient] = useState();
+  const [accountRecipient, setAccountRecipient] = useState('B62qitx5EYdPByMMeXX92VWRQ8JK1AKpDmmGrmSyZmguoPGjeCWhxsJ');
   /*  const [noteValue, setNoteValue] = useState(
     'AHIASIN89791823$@!@jhajskasjonnasI)QSN'
   ); */

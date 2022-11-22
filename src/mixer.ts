@@ -605,25 +605,35 @@ function parseNoteString(noteString: string): Note {
  4. A nullifier event should be created in the moment of withdraw to avoid double spending. 
  */
 async function withdraw(noteString: string) {
-
-    /**Note is parsed */
-    let parsedNote = parseNoteString(noteString);
-    console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
-    let deposit = createDeposit(parsedNote.nullifier, parsedNote.secret);
-    /**Verofy the Merkle Path */
-    await validateProof(deposit);
-    let ammount =parsedNote.amount.value
-    console.log('TYPE OF AMOUNT',typeof(parsedNote.amount))
-    console.log('AMOOUNT VALUE IN OBJECT',ammount)
-    console.log('AMOOUNT VALUE IN OBJECT',typeof(ammount))
-    // zkapp.emitNullifierEvent(Field(1))
-    // let getEventsNullifier = await zkapp.fetchEvents()
-    // console.log('TESTING EVENTS IN WITHDRAW', getEventsNullifier)
-    /**Verify Nullifier */
-    // let nullifier = Field(1);
-    // zkapp.verifyNullifier(nullifier);
-    /**Withdraw funds and emit nullifier event */
-    await withdrawFunds(userAccountAddress,ammount)
+    try{
+      /**Note is parsed */
+      let parsedNote = parseNoteString(noteString);
+      console.log('NOTE PARSEDD WITHDRAW=>', parsedNote);
+      let deposit = createDeposit(parsedNote.nullifier, parsedNote.secret);
+      /**Verofy the Merkle Path */
+      await validateProof(deposit);
+      let ammount =parsedNote.amount.value
+      console.log('TYPE OF AMOUNT',typeof(parsedNote.amount))
+      console.log('AMOOUNT VALUE IN OBJECT',ammount)
+      console.log('AMOOUNT VALUE IN OBJECT',typeof(ammount))
+      // zkapp.emitNullifierEvent(Field(1))
+      // let getEventsNullifier = await zkapp.fetchEvents()
+      // console.log('TESTING EVENTS IN WITHDRAW', getEventsNullifier)
+      /**Verify Nullifier */
+      // let nullifier = Field(1);
+      // zkapp.verifyNullifier(nullifier);
+      /**Withdraw funds and emit nullifier event */
+      console.log('+++++++++USER ADDRESS STRING => ', userAccountAddress.toJSON())
+      console.log(userAccountAddress.toJSON())
+      console.log('+++++++++USER ADDRESS constant => ', userAccountAddress.toConstant())
+      console.log(JSON.stringify(userAccountAddress.toJSON()))
+      await withdrawFunds(userAccountAddress,ammount)
+    }
+    catch (e){
+      console.error(e
+      )
+      return "error"
+    }
    
 }
 //TODO: Review these functions.

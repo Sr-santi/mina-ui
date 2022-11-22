@@ -86,10 +86,15 @@ function DeployContract({ zkapp, setZkapp }) {
   }
   async function withdraw(noteString) {
     let Mixer = await import('../dist/mixer.js');
-    let withdraw = Mixer.withdraw(noteString);
-    console.log('BALANCE => ', withdraw);
-    alert('RELEASING FUNDS ')
-    setOperationExec({ ...operationExec });
+    let withdraw = await Mixer.withdraw(noteString);
+
+    if (withdraw == 'error') {
+      alert('The note is invalid or was already used');
+    } else {
+      console.log('BALANCE => ', withdraw);
+      alert('RELEASING FUNDS ');
+      setOperationExec({ ...operationExec });
+    }
     // return balance;
   }
   return (
