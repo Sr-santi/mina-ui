@@ -1,5 +1,8 @@
 # NodeJS
 node_modules
+dist
+public/src
+.husky
 
 # Editor
 .vscode
@@ -7,9 +10,5 @@ node_modules
 # System
 .DS_Store
 
-# Project
-dist
-public/js
-
-src/examples
-.vercel
+# Misc
+LICENSE

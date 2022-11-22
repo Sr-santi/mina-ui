@@ -9,14 +9,26 @@ interface Props {
   text: string;
   arrow?: boolean;
   action?: any;
+  disabled?: boolean;
 }
 
-export default function ActionButton({ children, size, text, arrow, action }: Props) {
+export default function ActionButton({
+  children,
+  size,
+  text,
+  arrow,
+  action,
+  disabled = false,
+}: Props) {
   const Arrow = arrow === true ? <span>&rarr;</span> : '';
   return (
     <React.Fragment>
       <div className="self-center cursor-pointer">
-        <ActionButtonWrapper onClick={action} size={size}>
+        <ActionButtonWrapper
+          disabled={disabled}
+          onClick={!disabled ? action : () => {}}
+          size={size}
+        >
           <div>
             {text} {Arrow}
           </div>

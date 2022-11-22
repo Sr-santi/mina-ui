@@ -26,7 +26,8 @@ export const Title = styled.h1<TitleProps>`
   font-weight: 600;
   font-family: 'Montserrat';
   z-index: 10;
-  text-shadow: #fff 0px 0px 10px, #fff 0px 0px 1px, #fff 0px 0px 1px, #fff 0px 0px 1px, #fff 0px 0px 1px, #fff 0px 0px 1px;
+  text-shadow: #fff 0px 0px 10px, #fff 0px 0px 1px, #fff 0px 0px 1px,
+    #fff 0px 0px 1px, #fff 0px 0px 1px, #fff 0px 0px 1px;
 
   & span {
     color: #cd134b;
@@ -41,7 +42,8 @@ export const Title = styled.h1<TitleProps>`
       width: 0%;
       left: 0;
       bottom: -10px;
-      animation: ${widthModfier} ${(props) => props.time} linear infinite ${(props) => (props.reverse ? 'alternate-reverse' : 'alternate')};
+      animation: ${widthModfier} ${(props) => props.time} linear infinite
+        ${(props) => (props.reverse ? 'alternate-reverse' : 'alternate')};
     }
   }
 `;
@@ -50,10 +52,9 @@ export const SubTitle = styled.p`
   margin-top: 25px;
   font-weight: 500;
   font-size: 24px;
-  max-width: 750px;
   width: 100%;
   align-self: normal;
-  padding-left: 100px;
+  text-align: center;
   color: #67aeca;
   font-size: 30px;
 `;

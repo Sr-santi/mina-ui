@@ -8,6 +8,16 @@ export const CardContainer = styled.div`
   border-radius: 10px;
 `;
 
+export const AccountInputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+
+  & label {
+    margin-bottom: 8px;
+  }
+`;
+
 export const CardButtonsContainer = styled.div`
   display: flex;
   padding: 0px 20px;
