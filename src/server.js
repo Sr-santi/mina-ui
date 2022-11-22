@@ -6,6 +6,7 @@ let defaultHeaders = {
   'content-type': 'text/html',
   'Cross-Origin-Embedder-Policy': 'require-corp',
   'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
 };
 let server = http.createServer(async (req, res) => {
   let file = '.' + req.url;
