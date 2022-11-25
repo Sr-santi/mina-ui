@@ -24,7 +24,7 @@ export default function Header({
   getBalance,
 }: Props) {
   // const handleClick = () => {
-  //   console.log('Click happened');
+  //   
   // };
   return (
     <>

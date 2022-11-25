@@ -10,7 +10,7 @@ let defaultHeaders = {
 };
 let server = http.createServer(async (req, res) => {
   let file = '.' + req.url;
-  console.log(file);
+  
   if (file === './') file = './index.html';
   let content;
   try {
@@ -28,12 +28,12 @@ let server = http.createServer(async (req, res) => {
     js: 'application/javascript',
   }[extension];
   let headers = { ...defaultHeaders, 'content-type': contentType };
-  console.log('Headers', headers);
+  
   res.writeHead(200, headers);
   res.write(content);
   res.end();
 });
 let PORT = 3000;
 server.listen(PORT, () => {
-  console.log(`server running on http://localhost:${PORT}`);
+  
 });

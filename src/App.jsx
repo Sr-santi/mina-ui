@@ -53,7 +53,7 @@ function DeployContract({ zkapp, setZkapp }) {
     setLoading(false);
     setZkapp(zkapp);
     setIsDeployFinish(true);
-    console.log('THis execute well!!');
+    
   }
   async function depositTestFundsFunction() {
     //TODO: CHANGE THIS
@@ -61,7 +61,7 @@ function DeployContract({ zkapp, setZkapp }) {
     let zkapp = await Sudoku.depositTestFunds();
     // zkapp.depositTestFunds();
     setIsConnectedWallet(true);
-    console.log('ZKAPP => ', zkapp);
+    
   }
   async function depositFunction(amount) {
     setNoteString('');
@@ -75,13 +75,13 @@ function DeployContract({ zkapp, setZkapp }) {
   async function getAddresses() {
     let Mixer = await import('../dist/mixer.js');
     let addresses = Mixer.returnAddresses();
-    console.log('Addresses => ', addresses);
+    
     return addresses;
   }
   async function getBalance(address) {
     let Mixer = await import('../dist/mixer.js');
     let balance = Mixer.getAccountBalanceString(address);
-    console.log('BALANCE => ', balance);
+    
     return balance;
   }
   async function withdraw(noteString) {
@@ -91,7 +91,7 @@ function DeployContract({ zkapp, setZkapp }) {
     if (withdraw == 'error') {
       alert('The note is invalid or was already used');
     } else {
-      console.log('BALANCE => ', withdraw);
+      
       alert('RELEASING FUNDS ');
       setOperationExec({ ...operationExec });
     }

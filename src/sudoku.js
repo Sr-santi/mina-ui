@@ -195,7 +195,7 @@ function setBoard1(zkappAddress, sudoku) {
                     return [3 /*break*/, 6];
                 case 5:
                     err_1 = _a.sent();
-                    console.log('Solution rejected!');
+                    
                     console.error(err_1);
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];

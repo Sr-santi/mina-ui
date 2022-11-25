@@ -34,7 +34,7 @@ export default function BalanceContainer({
   }, [isConnectedWallet]);
   // get balances, I need to update this always someone executes a windraw or a transfer
   useEffect(() => {
-    console.log('here Addresses', Addresses);
+    
     const accountNames = Object.keys(Addresses);
     async function getBalances() {
       const objectBalance = {};

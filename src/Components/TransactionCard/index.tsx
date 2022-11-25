@@ -27,7 +27,7 @@ export default function TransactionCard({
   depositFunds,
 }: Props) {
   // const handleClick = () => {
-  //   console.log('Click happened');
+  //   
   // };
   const [showModal, setShowModal] = useState(true);
   const [btn1Class, setBtn1Class] = useState<classState>('active');
