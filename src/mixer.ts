@@ -110,7 +110,6 @@ export class MixerZkApp extends SmartContract {
     this.storageNumber.set(Field.zero);
   }
   //
-  //TODO:  Verify Merke Tree before inserting a commitment
   @method updateMerkleTree(commitment: Field) {
     
 
@@ -144,10 +143,6 @@ export class MixerZkApp extends SmartContract {
     
     let deposit= new DepositClass (commitment,lastIndex,Field(2))
     this.emitEvent('deposit', deposit);
-    
-    
-
-    // this.emitNullifierEvent(Field(1))
   }
   @method updateOffchain(
     leafIsEmpty: Bool,
@@ -202,7 +197,7 @@ export class MixerZkApp extends SmartContract {
   @method verifyMerkleProof(commitment: Field, merkleProof: MerkleWitness8) {
     let witnessMerkleRoot = merkleProof.calculateRoot(commitment);
     
-    //TODO: SHOULD COMO OFF-CHAIN
+    //TODO: SHOULD COME OFF-CHAIN
     let stateMerkleTreeRoot = this.merkleTreeRoot.get();
     this.merkleTreeRoot.assertEquals( stateMerkleTreeRoot );
 
@@ -218,7 +213,7 @@ export class MixerZkApp extends SmartContract {
     
   }
   @method async verifyNullifier(nullifier: Field) {
-    
+    //TODO: Complete after there is not bug emiting 2 events
     // let rawEvents = await this.fetchEvents();
     // let nullifierEvents =  rawEvents.filter((a) => (a.type = `nullifier`));
     // 
@@ -236,11 +231,6 @@ export class MixerZkApp extends SmartContract {
 // setup
 const Local = Mina.LocalBlockchain();
 Mina.setActiveInstance(Local);
-const storageServerAddress = 'http://localhost:3001';
-// const serverPublicKey = await OffChainStorage.getPublicKey(
-//   storageServerAddress,
-//   NodeXMLHttpRequest
-// );
 // a test account that pays all the fees, and puts additional funds into the zkapp
 //For our Mixer case the minadoFeePayer will be the HarpoAccount
 let minadoFeePayer = Local.testAccounts[0].privateKey;
@@ -250,13 +240,14 @@ let minadoFeePayerAccount = minadoFeePayer.toPublicKey();
 let zkappKey = PrivateKey.random();
 let zkappAddress = zkappKey.toPublicKey();
 let zkapp = new MixerZkApp(zkappAddress);
+//Off-chain storage implementation
+// const storageServerAddress = 'http://localhost:3001';
+// const serverPublicKey = await OffChainStorage.getPublicKey(
+//   storageServerAddress,
+//   NodeXMLHttpRequest
+// );
 //This initial balance will fund our minadoFeePayer
 // let initialBalance = 10_000_001;
-
-//TODO: ADD STATE INTERFACE IF NECESSARY
-type Interface = {
-  // getState(): { commitment1: string; commitment2: string, hits1: string, hits2: string, turn: string, guessX: string, guessY: string };
-};
 async function deploy() {
   
   let tx = await Mina.transaction(minadoFeePayer, () => {
@@ -268,7 +259,7 @@ async function deploy() {
   });
   await tx.send();
 }
-//todo: Off-chain storage
+// Off-chain storage implementation
 // async function offChainStorageSetup() {
 // Connecting to the server
 // }
@@ -355,9 +346,6 @@ async function returnAddresses() {
   };
   return object;
 }
-//   'Initial state of the merkle tree =>>',
-//   zkapp.merkleTreeRoot.get().toString()
-// );
 
 //TODO ADD INTEGRATION WITH ARURO WALLET
 
@@ -385,38 +373,27 @@ let userAccountAddress = userAccountKey.toPublicKey();
  * 5. Add commitment to the Merkle Tree
  * 6. Send funds from useraccount to MerkleTree
  */
+
 /**
  * 2. A userAccount is  funded with the purpose of depositing into our harpoAccount.
  * Note: Will not happen in a real implementation
  * TODO: Replace with Auro wallet Logic
  */
 async function deposit(amount: Number) {
-  //TODO: Should this be INT or UINT?
-  // zkapp.updateMerkleTree(Field(9))
   /**
    * 2. A userAccount is  funded with the purpose of depositing into our harpoAccount.
    */
-  // await depositTestFunds();
   let initialBalanceUser = getAccountBalance(userAccountAddress).toString();
   let initialBalanceZkApp = getAccountBalance(zkappAddress).toString();
   let initialBalanceFeePayer = getAccountBalance(
     minadoFeePayerAccount
   ).toString();
-  
-  
-  
   /**
    * 3. A commitment needs to be created  C(0) = H(S(0),N(0))
    */
   let nullifier = await createNullifier(userAccountAddress);
   let secret = Field.random();
   let commitment = await createCommitment(nullifier, secret);
-  
-  
-  
-  
-  //TODO: DELETE
-  // await emitNullifierEvent(Field(1));
   await updateMerkleTree(commitment);
   await sendFundstoMixer(userAccountKey, amount);
   const note = {
@@ -431,14 +408,10 @@ async function deposit(amount: Number) {
   let finalBalanceZkApp = getAccountBalance(zkappAddress).toString();
   let finalBalanceFeePayer = getAccountBalance(
     minadoFeePayerAccount
-  ).toString();
-  
-  
-  
-  // await emitNullifierEvent(Field(1))
+  ).toString();  
   return noteString;
 }
-//TODO: Change type
+//TODO: Change deposit event type
 function normalizeDepositEvents(depositEvent: any) {
   let newEvents = [];
   for (let i = 0; i < depositEvent.length; i++) {
@@ -463,10 +436,8 @@ async function depositTestFunds() {
     let update = AccountUpdate.createSigned(minadoFeePayer);
     update.send({ to: userAccountAddress, amount: 1000 });
     
-  });
-  
+  }); 
   await tx2.send();
-  
 }
 
 async function updateMerkleTree(commitment: Field) {
@@ -508,11 +479,7 @@ async function createNullifier(publicKey: PublicKey) {
   if (secret.toString().trim().length !== 77) {
     secret = Field.random();
   }
-  //TODO: DELETE
-  
-  //TODO: Sometimes this has is a lenght sometimes is another one
   let nullifierHash = Poseidon.hash([...keyString, secret]);
-  
   return nullifierHash;
 }
 
@@ -601,20 +568,6 @@ async function withdraw(noteString: string) {
       /**Verofy the Merkle Path */
       await validateProof(deposit);
       let ammount =parsedNote.amount.value
-      
-      
-      
-      // zkapp.emitNullifierEvent(Field(1))
-      // let getEventsNullifier = await zkapp.fetchEvents()
-      // 
-      /**Verify Nullifier */
-      // let nullifier = Field(1);
-      // zkapp.verifyNullifier(nullifier);
-      /**Withdraw funds and emit nullifier event */
-      
-      
-      
-      
       await withdrawFunds(userAccountAddress,ammount)
     }
     catch (e){
@@ -624,7 +577,6 @@ async function withdraw(noteString: string) {
     }
    
 }
-//TODO: Review these functions.
 /**
  *
  * @param deposit Created from a note
@@ -637,24 +589,16 @@ async function validateProof(deposit: Deposit) {
   //Find the commitment in the events
   
   let depositEvents = await getDepositEvents();
-  //TODO: LEAVE AS FIELD IF NECCESARY
   // 
   let commitmentDeposit = deposit.commitment;
-  //TODO PUT AMMOUNT INTO A VARIABLE
-
   //Search for an event with a given commitment
   let eventWithCommitment = depositEvents.find(
     (e) => e.commitment.toString() === commitmentDeposit.toString()
   );
   
-  //TODO: Change this
   let leafIndex = eventWithCommitment?.leafIndex;
-  //TODO: Add validations of the event
-
   let merkleTreeWitness = merkleTree.getWitness(BigInt(leafIndex));
   let merkleWitness = new MerkleWitness8(merkleTreeWitness);
-  
-
   try {
     zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
     
@@ -662,14 +606,12 @@ async function validateProof(deposit: Deposit) {
     
     
   }
-  //TODO: ADD basic catch erros returns to link it with the front-end
   return true;
-  //Verifying the nullifier
+  // TODO:L Add nullifier logic when bugs are fixed
 }
 async function getDepositEvents() {
   let rawEvents = await zkapp.fetchEvents();
   let despositEvents = (await rawEvents).filter((a) => (a.type = `deposit`));
-  
   let normalizedDepositEvents = normalizeDepositEvents(despositEvents);
   return normalizedDepositEvents;
 }
@@ -677,27 +619,20 @@ async function getNullifierEvents() {
   let rawEvents = await zkapp.fetchEvents();
   return rawEvents.filter((a) => (a.type = `nullifier`));
 }
+//TODO: FINISH THIS FUNCTION
 async function isSpend(nullifier: any) {
   let nullfierEvents = getNullifierEvents();
-  
 }
 async function initTest() {
   let noteString = await deposit(100);
-  
   withdraw(noteString);
   
 }
 async function withdrawFunds(reciever: PublicKey, amount: any) {
   let tx = await Mina.transaction(zkappKey, () => {
     let update = AccountUpdate.createSigned(zkappKey);
-    //The userAddress is funced
     update.send({ to: reciever, amount: amount });
-    
-    //Parece que la zkapp no puede recibir fondos
   });
   await tx.send();
-  
-  // 
 }
 
-// initTest();
