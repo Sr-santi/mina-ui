@@ -73,6 +73,7 @@ function normalizeNullifier(nullifierEvent: any) {
 export class MixerZkApp extends SmartContract {
   //state variables
   @state(Field) x = State<Field>();
+  @state(UInt64) output = State<UInt64>();
   // @state(Field) merkleTreeVariable = State<MerkleTree>();
   @state(Field) merkleTreeRoot = State<Field>();
   @state(Field) lastIndexAdded = State<Field>();
@@ -107,7 +108,7 @@ export class MixerZkApp extends SmartContract {
     const emptyTreeRoot = new MerkleTree(8).getRoot();
     this.storageTreeRoot.set(emptyTreeRoot);
     //Used to make sure that we are storing states
-    this.storageNumber.set(Field.zero);
+    this.output.set(new UInt64(Field(0)));
   }
   //
   @method updateMerkleTree(commitment: Field) {
