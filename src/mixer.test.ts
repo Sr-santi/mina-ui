@@ -91,7 +91,6 @@ describe('Mixer', () => {
     setTimeout(shutdown, 0);
   });
 
-  //For each test I need to generate a local instance for MIna
   it('generates and deploys the `Mixer` smart contract, aldso', async () => {
     const zkAppInstance = new MixerZkApp(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
@@ -99,9 +98,7 @@ describe('Mixer', () => {
     const num = zkAppInstance.output.get();
     expect(num).toEqual(new UInt64(Field(0)));
   });
-  //   describe('Deposit => It transfers funds ', () => {
-  //     it('Transfer funds to an account succesfully ', async () => {});
-  //   });
+//Deposit logic tests 
   describe('Deposit', () => {
     it('With a given object it generates a notestring in the correct format', async () => {
       let amount = 20;
