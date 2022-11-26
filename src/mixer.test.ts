@@ -11,8 +11,7 @@ import {
   import {MixerZkApp} from './mixer'
   import {DepositClass,NullifierClass} from './proof_system'
   import {jest} from '@jest/globals';
-  
-  jest.useFakeTimers()
+
   let proofsEnabled = false;
   function createLocalBlockchain() {
     const Local = Mina.LocalBlockchain({ proofsEnabled });
