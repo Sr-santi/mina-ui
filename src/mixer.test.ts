@@ -8,7 +8,14 @@ import {
   AccountUpdate,
   UInt64,
 } from 'snarkyjs';
-import { MixerZkApp, createNullifier, createCommitment, deposit,generateNoteString } from './mixer';
+import {
+  MixerZkApp,
+  createNullifier,
+  createCommitment,
+  deposit,
+  generateNoteString,
+  getAccountBalanceString
+} from './mixer';
 import { DepositClass, NullifierClass } from './proof_system';
 import { jest } from '@jest/globals';
 
@@ -46,19 +53,21 @@ async function updateState(
   txn.sign([zkAppPrivatekey]);
   await txn.send();
 }
-async function fetchEvents(
-  zkAppInstance: MixerZkApp,
-  zkAppPrivatekey: PrivateKey,
-  deployerAccount: PrivateKey
+async function sendFundsToMixer(
+  sender: PrivateKey,
+  deployerAccount: PrivateKey,
+  zkAppAddress:PublicKey,
+  amount: any
 ) {
   const txn = await Mina.transaction(deployerAccount, () => {
-    let events = zkAppInstance.fetchEvents();
-    return events;
+    let update = AccountUpdate.createSigned(deployerAccount);
+    update.send({ to: zkAppAddress, amount: amount });
   });
   await txn.prove();
-  txn.sign([zkAppPrivatekey]);
+  txn.sign([sender]);
   await txn.send();
 }
+
 describe('Mixer', () => {
   let deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
@@ -90,57 +99,67 @@ describe('Mixer', () => {
     const num = zkAppInstance.output.get();
     expect(num).toEqual(new UInt64(Field(0)));
   });
-//   describe('Deposit => It transfers funds ', () => {
-//     it('Transfer funds to an account succesfully ', async () => {});
-//   });
+  //   describe('Deposit => It transfers funds ', () => {
+  //     it('Transfer funds to an account succesfully ', async () => {});
+  //   });
   describe('Deposit', () => {
     it('With a given object it generates a notestring in the correct format', async () => {
-        let amount =20
-        let nullifier = await createNullifier(zkAppAddress);
-        let secret = Field.random();
-        const note = {
-            currency: 'Mina',
-            amount: new UInt64(amount),
-            nullifier: nullifier,
-            secret: secret,
-          };
-        const noteString= generateNoteString(note)
-        const noteRegex =
-        /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
-        expect(noteString).toMatch(noteRegex)
-    });
-  });
-  describe('Merkle Tree State update', () => {
-    it('Recieves a commitment,it must update the Merkle Tree Root, it must update the last index where a commitment was inserted, then it must emit a deposit event', async () => {
-      const zkAppInstance = new MixerZkApp(zkAppAddress);
-      await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+      let amount = 20;
       let nullifier = await createNullifier(zkAppAddress);
       let secret = Field.random();
-      let commitment = await createCommitment(nullifier, secret);
-      let initialMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
-      let lastIndexAdded = zkAppInstance.lastIndexAdded.get();
-      let depositObject = {
-        event: new DepositClass(commitment, lastIndexAdded, Field(2)),
-        type: 'deposit',
+      const note = {
+        currency: 'Mina',
+        amount: new UInt64(amount),
+        nullifier: nullifier,
+        secret: secret,
       };
-      await updateState(
-        zkAppInstance,
-        zkAppPrivateKey,
-        deployerAccount,
-        commitment
-      );
-      let updatedMerkleTree = zkAppInstance.merkleTreeRoot.get();
-      let newIndex = new UInt64(zkAppInstance.lastIndexAdded.get());
-      expect(newIndex).toEqual(new UInt64(lastIndexAdded.add(Field(1))));
-      let events = await zkAppInstance.fetchEvents();
-      let testArray = [];
-      testArray.push(depositObject);
-      //The events should be in the deposit events
-      expect(events).toEqual(expect.arrayContaining(testArray));
-      //The merkle tree root should be different to the initail state
-      expect(updatedMerkleTree.toString()).toEqual(
-        expect.not.stringContaining(initialMerkleTreeRoot.toString())
-      );
+      const noteString = generateNoteString(note);
+      const noteRegex =
+        /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
+      expect(noteString).toMatch(noteRegex);
+    });
+    describe('Merkle Tree State update', () => {
+      it('Recieves a commitment,it must update the Merkle Tree Root, it must update the last index where a commitment was inserted, then it must emit a deposit event', async () => {
+        const zkAppInstance = new MixerZkApp(zkAppAddress);
+        await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+        let nullifier = await createNullifier(zkAppAddress);
+        let secret = Field.random();
+        let commitment = await createCommitment(nullifier, secret);
+        let initialMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
+        let lastIndexAdded = zkAppInstance.lastIndexAdded.get();
+        let depositObject = {
+          event: new DepositClass(commitment, lastIndexAdded, Field(2)),
+          type: 'deposit',
+        };
+        await updateState(
+          zkAppInstance,
+          zkAppPrivateKey,
+          deployerAccount,
+          commitment
+        );
+        let updatedMerkleTree = zkAppInstance.merkleTreeRoot.get();
+        let newIndex = new UInt64(zkAppInstance.lastIndexAdded.get());
+        expect(newIndex).toEqual(new UInt64(lastIndexAdded.add(Field(1))));
+        let events = await zkAppInstance.fetchEvents();
+        let testArray = [];
+        testArray.push(depositObject);
+        //The events should be in the deposit events
+        expect(events).toEqual(expect.arrayContaining(testArray));
+        //The merkle tree root should be different to the initail state
+        expect(updatedMerkleTree.toString()).toEqual(
+          expect.not.stringContaining(initialMerkleTreeRoot.toString())
+        );
+      });
+    });
+    describe('Transfer funds to ZkApp', () => {
+      it('With a given ammount and Private Key, it must transfer funds from an account to the zkApp contract ', async () => {
+        const zkAppInstance = new MixerZkApp(zkAppAddress);
+        await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+        let amount =1 
+        await sendFundsToMixer(deployerAccount,deployerAccount,zkAppAddress,amount)
+        let balance = +Mina.getBalance(zkAppAddress).toString()
+        expect(balance).toEqual(amount)
+      });
     });
   });
   // it('correctly updates the output state on the `Vwap` smart contract when result is integer', async () => {
