@@ -44,7 +44,8 @@ export {
   returnAddresses,
   withdraw,
   createCommitment,
-  createNullifier
+  createNullifier,
+  generateNoteString
 };
 
 type Witness = { isLeft: boolean; sibling: Field }[];
