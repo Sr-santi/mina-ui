@@ -16,6 +16,6 @@ export default {
     transformIgnorePatterns: [
       '<rootDir>/node_modules/(?!snarkyjs/node_modules/tslib)',
     ],
-    modulePathIgnorePatterns: ['<rootDir>/build/'],
+    // modulePathIgnorePatterns: ['<rootDir>/build/'],
   };
   

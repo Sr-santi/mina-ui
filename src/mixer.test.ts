@@ -10,6 +10,9 @@ import {
   } from 'snarkyjs';
   import {MixerZkApp} from './mixer'
   import {DepositClass,NullifierClass} from './proof_system'
+  import {jest} from '@jest/globals';
+  
+  jest.useFakeTimers()
   let proofsEnabled = false;
   function createLocalBlockchain() {
     const Local = Mina.LocalBlockchain({ proofsEnabled });
@@ -46,13 +49,15 @@ import {
       deployerAccount = createLocalBlockchain();
       zkAppPrivateKey = PrivateKey.random();
       zkAppAddress = zkAppPrivateKey.toPublicKey();
+      
     });
   
     afterAll(async () => {
       // `shutdown()` internally calls `process.exit()` which will exit the running Jest process early.
       // Specifying a timeout of 0 is a workaround to defer `shutdown()` until Jest is done running all tests.
-      // This should be fixed with https://github.com/MinaProtocol/mina/issues/10943
-      setTimeout(shutdown, 5000);
+      // This should be fixed with https://github.com/MinaProtocol/mina/issues/1094
+      setTimeout(shutdown, 0);
+
     });
 
   //For each test I need to generate a local instance for MIna

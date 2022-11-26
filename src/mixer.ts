@@ -26,8 +26,8 @@ import {
   OffChainStorage,
   MerkleWitness8,
 } from 'experimental-zkapp-offchain-storage';
-import DepositClass from './proof_system/models/DepositClass.js';
-import NullifierClass from './proof_system/models/NullifierClass.js';
+import {DepositClass} from './proof_system/';
+import {NullifierClass} from './proof_system/';
 import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
 // import fs from 'fs';
 // import XMLHttpRequestTs, { XMLHttpRequest } from 'xmlhttprequest-ts';
