@@ -65,7 +65,7 @@ async function sendFundsToMixer(
     update.send({ to: zkAppAddress, amount: amount });
   });
   await txn.prove();
-  txn.sign([sender]);
+  // txn.sign([sender]);
   await txn.send();
 }
 
@@ -89,7 +89,8 @@ describe('Mixer', () => {
     // `shutdown()` internally calls `process.exit()` which will exit the running Jest process early.
     // Specifying a timeout of 0 is a workaround to defer `shutdown()` until Jest is done running all tests.
     // This should be fixed with https://github.com/MinaProtocol/mina/issues/1094
-    setTimeout(shutdown, 0);
+    //TODO: Potential error here Error here
+    setTimeout(shutdown, 30000);
   });
 
   it('generates and deploys the `Mixer` smart contract, aldso', async () => {
@@ -176,12 +177,12 @@ describe('Mixer', () => {
       expect(testingNote).toMatch(noteRegex);
       let parsedNote= parseNoteString(testingNote)
       let expectedObject={
-        currency:expect.any(String),
-        amount:expect.any(UInt64),
+        currency:'Mina',
+        amount:expect.any(Number),
         nullifier:expect.any(Field),
         secret:expect.any(Field)
       }
-
+      expect(parsedNote).toMatchObject(expectedObject)
     });
   });
 });
