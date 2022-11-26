@@ -60,9 +60,10 @@ import {
     });
 
   //For each test I need to generate a local instance for MIna
-    it('generates and deploys the `Vwap` smart contract', async () => {
+    it('generates and deploys the `Mixer` smart contract', async () => {
       const zkAppInstance = new MixerZkApp(zkAppAddress);
       await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+      //It test that the state is being updated succesfuly
       const num = zkAppInstance.output.get();
       expect(num).toEqual(new UInt64(Field(0)));
     });
