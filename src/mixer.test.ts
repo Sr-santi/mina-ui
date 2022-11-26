@@ -15,6 +15,7 @@ import {
   deposit,
   generateNoteString,
   getAccountBalanceString,
+  parseNoteString
 } from './mixer';
 import { DepositClass, NullifierClass } from './proof_system';
 import { jest } from '@jest/globals';
@@ -164,6 +165,23 @@ describe('Mixer', () => {
         let balance = +Mina.getBalance(zkAppAddress).toString();
         expect(balance).toEqual(amount);
       });
+    });
+  });
+  //Withdraw logic tests
+  describe('Withdraw', () => {
+    it('Takes a note the parses it and returns a deposit object in an expected format ', async () => {
+      let testingNote='Minado&Mina&100&694070337045484131174875670050561624819435179753805616057744805525768806488%4724999261780669299422464210112568116127808857404186703382242819114614941792&Minado'
+      const noteRegex =
+        /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
+      expect(testingNote).toMatch(noteRegex);
+      let parsedNote= parseNoteString(testingNote)
+      let expectedObject={
+        currency:expect.any(String),
+        amount:expect.any(UInt64),
+        nullifier:expect.any(Field),
+        secret:expect.any(Field)
+      }
+
     });
   });
 });
