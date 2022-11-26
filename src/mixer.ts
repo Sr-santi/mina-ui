@@ -43,6 +43,8 @@ export {
   getAccountBalanceString,
   returnAddresses,
   withdraw,
+  createCommitment,
+  createNullifier
 };
 
 type Witness = { isLeft: boolean; sibling: Field }[];
