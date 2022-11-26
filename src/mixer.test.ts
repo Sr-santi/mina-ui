@@ -9,7 +9,7 @@ import {
     UInt64,
   } from 'snarkyjs';
   import {MixerZkApp} from './mixer'
-  
+  import {DepositClass,NullifierClass} from './proof_system'
   let proofsEnabled = false;
   function createLocalBlockchain() {
     const Local = Mina.LocalBlockchain({ proofsEnabled });
