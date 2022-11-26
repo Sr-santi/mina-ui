@@ -45,6 +45,18 @@ async function updateState(zkAppInstance: MixerZkApp,
       txn.sign([zkAppPrivatekey]);
       await txn.send();
 }
+async function fetchEvents(zkAppInstance: MixerZkApp,
+    zkAppPrivatekey: PrivateKey,
+    deployerAccount: PrivateKey,
+    ){
+    const txn = await Mina.transaction(deployerAccount, () => {
+        let events=zkAppInstance.fetchEvents();
+        return events
+      });
+      await txn.prove();
+      txn.sign([zkAppPrivatekey]);
+      await txn.send();
+}
 describe('Mixer', () => {
   let deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
@@ -78,7 +90,7 @@ describe('Mixer', () => {
   });
 
   describe('Merkle Tree State update', () => {
- it('Recieves a commitment,it must update the Merkle Tree Root and then emits a deposit event', async () => {
+ it('Recieves a commitment,it must update the Merkle Tree Root, it must update the last index where a commitment was inserted, then it  emits a deposit event', async () => {
     const zkAppInstance = new MixerZkApp(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
     let nullifier = await createNullifier(zkAppAddress);
@@ -86,12 +98,17 @@ describe('Mixer', () => {
     let commitment = await createCommitment(nullifier, secret);
     let initialMerkleTreeRoot=zkAppInstance.merkleTreeRoot.get()
     let lastIndexAdded=zkAppInstance.lastIndexAdded.get()
-    console.log('commitment => ',commitment.toString())
+    let depositObject= {"event":new DepositClass (commitment,lastIndexAdded,Field(2)),"type":"deposit"}
     await updateState(zkAppInstance, zkAppPrivateKey, deployerAccount,commitment)
     let updatedMerkleTree=zkAppInstance.merkleTreeRoot.get()
     let newIndex= new UInt64 (zkAppInstance.lastIndexAdded.get())
-    console.log('LAST INDEX => ',newIndex)
+    let events =await zkAppInstance.fetchEvents()
     expect(newIndex).toEqual(new UInt64(lastIndexAdded.add(Field(1))))
+    let testArray=[]
+    testArray.push(depositObject)
+    //The events should be in the deposit events
+    expect(events).toEqual(expect.arrayContaining(testArray))
+
   });
   });
   // it('correctly updates the output state on the `Vwap` smart contract when result is integer', async () => {
