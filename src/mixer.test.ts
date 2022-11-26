@@ -178,9 +178,9 @@ describe('Mixer', () => {
       let parsedNote= parseNoteString(testingNote)
       let expectedObject={
         currency:'Mina',
-        amount:expect.any(Number),
-        nullifier:expect.any(Field),
-        secret:expect.any(Field)
+        amount:new UInt64(100),
+        nullifier:new Field('694070337045484131174875670050561624819435179753805616057744805525768806488'),
+        secret:new Field('4724999261780669299422464210112568116127808857404186703382242819114614941792')
       }
       expect(parsedNote).toMatchObject(expectedObject)
     });
