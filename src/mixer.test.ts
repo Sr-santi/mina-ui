@@ -15,7 +15,7 @@ import {
   deposit,
   generateNoteString,
   getAccountBalanceString,
-  parseNoteString
+  parseNoteString,
 } from './mixer';
 import { DepositClass, NullifierClass } from './proof_system';
 import { jest } from '@jest/globals';
@@ -123,12 +123,12 @@ describe('Mixer', () => {
         const zkAppInstance = new MixerZkApp(zkAppAddress);
         await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
         let nullifier = await createNullifier(zkAppAddress);
-        expect(nullifier.toString()).toHaveLength(77)
-        //TODO: Potentially remove 
+        expect(nullifier.toString()).toHaveLength(77);
+        //TODO: Potentially remove
         let secret = Field.random();
         //TODO: We can add a test for the output of this function as well.
         let commitment = await createCommitment(nullifier, secret);
-        console.log('commitment=>>',commitment,toString())
+        console.log('commitment=>>', commitment, toString());
         let initialMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
         let lastIndexAdded = zkAppInstance.lastIndexAdded.get();
         let depositObject = {
@@ -174,18 +174,33 @@ describe('Mixer', () => {
   //Withdraw logic tests
   describe('Withdraw', () => {
     it('Takes a note the parses it and returns a deposit object in an expected format ', async () => {
-      let testingNote='Minado&Mina&100&694070337045484131174875670050561624819435179753805616057744805525768806488%4724999261780669299422464210112568116127808857404186703382242819114614941792&Minado'
+      let testingNote =
+        'Minado&Mina&100&694070337045484131174875670050561624819435179753805616057744805525768806488%4724999261780669299422464210112568116127808857404186703382242819114614941792&Minado';
       const noteRegex =
         /Minado&(?<currency>\w+)&(?<amount>[\d.]+)&(?<nullifier>[0-9a-fA-F]+)%(?<secret>[0-9a-fA-F]+)&Minado/g;
       expect(testingNote).toMatch(noteRegex);
-      let parsedNote= parseNoteString(testingNote)
-      let expectedObject={
-        currency:'Mina',
-        amount:new UInt64(100),
-        nullifier:new Field('694070337045484131174875670050561624819435179753805616057744805525768806488'),
-        secret:new Field('4724999261780669299422464210112568116127808857404186703382242819114614941792')
-      }
-      expect(parsedNote).toMatchObject(expectedObject)
+      let parsedNote = parseNoteString(testingNote);
+      let expectedObject = {
+        currency: 'Mina',
+        amount: new UInt64(100),
+        nullifier: new Field(
+          '694070337045484131174875670050561624819435179753805616057744805525768806488'
+        ),
+        secret: new Field(
+          '4724999261780669299422464210112568116127808857404186703382242819114614941792'
+        ),
+      };
+      expect(parsedNote).toMatchObject(expectedObject);
+    });
+    describe('Create deposit object for withdraw', () => {
+      it('With a given object it must create a deposit object with a specific structure', () => {});
+    });
+    describe('Validates Merkle Proof function', () => {
+      it('With a given commitment and Merkle Proof it must validate a Merkle Path', () => {});
+    });
+    //TODO: Add nullifier verification function
+    describe('Withdraw funds from Zkapp function', () => {
+      it('Must sends funds to a given address from the zkApp', () => {});
     });
   });
 });
