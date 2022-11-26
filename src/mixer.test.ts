@@ -14,7 +14,7 @@ import {
   createCommitment,
   deposit,
   generateNoteString,
-  getAccountBalanceString
+  getAccountBalanceString,
 } from './mixer';
 import { DepositClass, NullifierClass } from './proof_system';
 import { jest } from '@jest/globals';
@@ -56,7 +56,7 @@ async function updateState(
 async function sendFundsToMixer(
   sender: PrivateKey,
   deployerAccount: PrivateKey,
-  zkAppAddress:PublicKey,
+  zkAppAddress: PublicKey,
   amount: any
 ) {
   const txn = await Mina.transaction(deployerAccount, () => {
@@ -98,10 +98,11 @@ describe('Mixer', () => {
     const num = zkAppInstance.output.get();
     expect(num).toEqual(new UInt64(Field(0)));
   });
-//Deposit logic tests 
+  //Deposit logic tests
   describe('Deposit', () => {
     it('With a given object it generates a notestring in the correct format', async () => {
       let amount = 20;
+      //TODO: We could add a test to the output of this function.
       let nullifier = await createNullifier(zkAppAddress);
       let secret = Field.random();
       const note = {
@@ -121,6 +122,7 @@ describe('Mixer', () => {
         await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
         let nullifier = await createNullifier(zkAppAddress);
         let secret = Field.random();
+        //TODO: We can add a test for the output of this function as well.
         let commitment = await createCommitment(nullifier, secret);
         let initialMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
         let lastIndexAdded = zkAppInstance.lastIndexAdded.get();
@@ -152,48 +154,16 @@ describe('Mixer', () => {
       it('With a given ammount and Private Key, it must transfer funds from an account to the zkApp contract ', async () => {
         const zkAppInstance = new MixerZkApp(zkAppAddress);
         await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
-        let amount =1 
-        await sendFundsToMixer(deployerAccount,deployerAccount,zkAppAddress,amount)
-        let balance = +Mina.getBalance(zkAppAddress).toString()
-        expect(balance).toEqual(amount)
+        let amount = 1;
+        await sendFundsToMixer(
+          deployerAccount,
+          deployerAccount,
+          zkAppAddress,
+          amount
+        );
+        let balance = +Mina.getBalance(zkAppAddress).toString();
+        expect(balance).toEqual(amount);
       });
     });
   });
-  // it('correctly updates the output state on the `Vwap` smart contract when result is integer', async () => {
-  //   const zkAppInstance = new Vwap(zkAppAddress);
-  //   await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
-  //   const txn = await Mina.transaction(deployerAccount, () => {
-  //     const prices = new InputArray(
-  //       padArrayEnd([Field(10_000_000), Field(10_000_000)])
-  //     );
-  //     const volumes = new InputArray(
-  //       padArrayEnd([Field(25_000_000), Field(25_000_000)])
-  //     );
-  //     zkAppInstance.calculate(prices, volumes);
-  //   });
-  //   await txn.prove();
-  //   await txn.send();
-
-  //   const updatedNum = zkAppInstance.output.get();
-  //   expect(updatedNum).toEqual(new UInt64(Field(10_000_000)));
-  // });
-
-  // it('correctly updates the output state on the `Vwap` smart contract when result is a rational number', async () => {
-  //   const zkAppInstance = new Vwap(zkAppAddress);
-  //   await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
-  //   const txn = await Mina.transaction(deployerAccount, () => {
-  //     const prices = new InputArray(
-  //       padArrayEnd([Field(1_000_000), Field(10_000_000)])
-  //     );
-  //     const volumes = new InputArray(
-  //       padArrayEnd([Field(1_000_000), Field(50_000_000)])
-  //     );
-  //     zkAppInstance.calculate(prices, volumes);
-  //   });
-  //   await txn.prove();
-  //   await txn.send();
-
-  //   const updatedNum = zkAppInstance.output.get();
-  //   expect(updatedNum).toEqual(new UInt64(Field(9_823_529)));
-  // });
 });
