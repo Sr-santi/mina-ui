@@ -123,9 +123,12 @@ describe('Mixer', () => {
         const zkAppInstance = new MixerZkApp(zkAppAddress);
         await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
         let nullifier = await createNullifier(zkAppAddress);
+        expect(nullifier.toString()).toHaveLength(77)
+        //TODO: Potentially remove 
         let secret = Field.random();
         //TODO: We can add a test for the output of this function as well.
         let commitment = await createCommitment(nullifier, secret);
+        console.log('commitment=>>',commitment,toString())
         let initialMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
         let lastIndexAdded = zkAppInstance.lastIndexAdded.get();
         let depositObject = {
