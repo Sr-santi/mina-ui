@@ -93,7 +93,7 @@ describe('Mixer', () => {
     setTimeout(shutdown, 30000);
   });
 
-  it('generates and deploys the `Mixer` smart contract, aldso', async () => {
+  it('generates and deploys the `Mixer` smart contract, also', async () => {
     const zkAppInstance = new MixerZkApp(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
     //It test that the state is being updated succesfuly
@@ -123,8 +123,6 @@ describe('Mixer', () => {
         const zkAppInstance = new MixerZkApp(zkAppAddress);
         await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
         let nullifier = await createNullifier(zkAppAddress);
-        expect(nullifier.toString()).toHaveLength(77);
-        //TODO: Potentially remove
         let secret = Field.random();
         //TODO: We can add a test for the output of this function as well.
         let commitment = await createCommitment(nullifier, secret);
