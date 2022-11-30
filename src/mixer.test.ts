@@ -139,16 +139,17 @@ describe('Mixer', () => {
           deployerAccount,
           commitment
         );
-        let updatedMerkleTree = zkAppInstance.merkleTreeRoot.get();
+        let updatedMerkleTreeRoot = zkAppInstance.merkleTreeRoot.get();
         let newIndex = new UInt64(zkAppInstance.lastIndexAdded.get());
         expect(newIndex).toEqual(new UInt64(lastIndexAdded.add(Field(1))));
         let events = await zkAppInstance.fetchEvents();
         let testArray = [];
+        //TODO: CHnage to expect.containOnject
         testArray.push(depositObject);
         //The events should be in the deposit events
         expect(events).toEqual(expect.arrayContaining(testArray));
         //The merkle tree root should be different to the initail state
-        expect(updatedMerkleTree.toString()).toEqual(
+        expect(updatedMerkleTreeRoot.toString()).toEqual(
           expect.not.stringContaining(initialMerkleTreeRoot.toString())
         );
       });
