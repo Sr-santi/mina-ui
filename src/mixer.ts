@@ -36,17 +36,21 @@ import { Events } from 'snarkyjs/dist/node/lib/account_update.js';
 
 await isReady;
 export {
+  createCommitment,
+  createDeposit,
+  createNullifier,
   deploy,
-  depositTestFunds,
   deposit,
+  depositTestFunds,
   getAccountBalance,
   getAccountBalanceString,
+  generateNoteString,
+  merkleTree,
+  normalizeDepositEvents,
+  parseNoteString,
   returnAddresses,
   withdraw,
-  createCommitment,
-  createNullifier,
-  generateNoteString,
-  parseNoteString
+  validateProof
 };
 
 type Witness = { isLeft: boolean; sibling: Field }[];
@@ -454,8 +458,8 @@ async function updateMerkleTree(commitment: Field) {
   const rawMerkleTree = zkapp.merkleTreeRoot.get().toString();
   
   const newIndex = zkapp.lastIndexAdded.get().toBigInt();
-  
 }
+
 async function emitNullifierEvent(nullifierHash: Field) {
   let tx3 = await Mina.transaction(minadoFeePayer, () => {
     zkapp.emitNullifierEvent(nullifierHash);
@@ -478,13 +482,11 @@ function getAccountBalanceString(address: any) {
  * Rho: Private key
  */
 
-async function createNullifier(publicKey: PublicKey) {
+function createNullifier(publicKey: PublicKey) {
   let keyString = publicKey.toFields();
   let secret = Field.random();
-  if (secret.toString().trim().length !== 77) {
-    secret = Field.random();
-  }
   let nullifierHash = Poseidon.hash([...keyString, secret]);
+
   return nullifierHash;
 }
 
@@ -594,6 +596,7 @@ async function validateProof(deposit: Deposit) {
   //Find the commitment in the events
   
   let depositEvents = await getDepositEvents();
+
   // 
   let commitmentDeposit = deposit.commitment;
   //Search for an event with a given commitment
@@ -604,19 +607,14 @@ async function validateProof(deposit: Deposit) {
   let leafIndex = eventWithCommitment?.leafIndex;
   let merkleTreeWitness = merkleTree.getWitness(BigInt(leafIndex));
   let merkleWitness = new MerkleWitness8(merkleTreeWitness);
-  try {
-    zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
-    
-  } catch (e) {
-    
-    
-  }
-  return true;
+
+  zkapp.verifyMerkleProof(eventWithCommitment?.commitment, merkleWitness);
   // TODO:L Add nullifier logic when bugs are fixed
 }
+
 async function getDepositEvents() {
   let rawEvents = await zkapp.fetchEvents();
-  let despositEvents = (await rawEvents).filter((a) => (a.type = `deposit`));
+  let despositEvents = rawEvents.filter((a) => (a.type = `deposit`));
   let normalizedDepositEvents = normalizeDepositEvents(despositEvents);
   return normalizedDepositEvents;
 }
