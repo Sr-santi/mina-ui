@@ -219,7 +219,7 @@ export class MixerZkApp extends SmartContract {
     };
     //TODO: BUG HERE
     this.emitEvent('nullifier', nullifierEvent);
-    
+    console.log('NUllifier event emitted succesfuly')
   }
   @method async verifyNullifier(nullifier: Field) {
     //TODO: Complete after there is not bug emiting 2 events
@@ -576,10 +576,16 @@ async function withdraw(noteString: string) {
       await validateProof(deposit);
       let ammount =parsedNote.amount.value
       await withdrawFunds(userAccountAddress,ammount)
+      //Emiting the nullifier event after the withdraw is done
+      await isSpend(parsedNote.nullifier)
+      await emitNullifierEvent(parsedNote.nullifier)
+      let events = await getNullifierEvents()
+      console.log('EVENTS NULLIFIER? => ', events)
     }
     catch (e){
       console.error(e
       )
+      alert(e)
       return "error"
     }
    
@@ -614,17 +620,45 @@ async function validateProof(deposit: Deposit) {
 
 async function getDepositEvents() {
   let rawEvents = await zkapp.fetchEvents();
-  let despositEvents = rawEvents.filter((a) => (a.type = `deposit`));
-  let normalizedDepositEvents = normalizeDepositEvents(despositEvents);
+  let depositEvents =[]; 
+  for (let i=0;i<rawEvents.length ; i++ ){
+    let element = rawEvents[i]
+    if(element.type == 'deposit' &&'commitment' in element.event){
+      depositEvents.push(element);
+    }
+  }
+  let normalizedDepositEvents = normalizeDepositEvents(depositEvents);
+  console.log('Deposit Events => ', normalizedDepositEvents)
   return normalizedDepositEvents;
 }
 async function getNullifierEvents() {
   let rawEvents = await zkapp.fetchEvents();
-  return rawEvents.filter((a) => (a.type = `nullifier`));
+  console.log('Events coming => ', rawEvents)
+  let nullifierEvents=[];
+  for (let i=0;i<rawEvents.length ; i++ ){
+    let element = rawEvents[i]
+    if(element.type == 'nullifier' &&'nullifier' in element.event){
+      let eventsNormalized = element.event.toFields(null);
+      let object ={
+        nullifier:eventsNormalized[0].toString(),
+        timeStamp: eventsNormalized[1]?.toString(),
+      }
+      nullifierEvents.push(object);
+    }
+  }
+  // return rawEvents.filter((a) => (a.type = `nullifier` && ));
+  return nullifierEvents
 }
 //TODO: FINISH THIS FUNCTION
 async function isSpend(nullifier: any) {
-  let nullfierEvents = getNullifierEvents();
+  let nullfierEvents = await getNullifierEvents();
+    // return rawEvents.filter((a) => (a.type = `nullifier` && ));
+  let fitleredArray= nullfierEvents.filter((a)=>(a.nullifier == nullifier))
+  if (fitleredArray.length > 0){
+    throw new Error(
+      'The note was already spent'
+    )
+  }
 }
 async function initTest() {
   let noteString = await deposit(100);
@@ -637,5 +671,6 @@ async function withdrawFunds(reciever: PublicKey, amount: any) {
     update.send({ to: reciever, amount: amount });
   });
   await tx.send();
+
 }
 
